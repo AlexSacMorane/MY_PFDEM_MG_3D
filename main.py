@@ -46,6 +46,8 @@ def run_moose(dict_user, dict_sample):
     compute_mass_loss(dict_user, dict_sample, 'L_loss_kc') # from tools.py
     # compute activity map
     tic_tempo = time.perf_counter() # compute performances
+    compute_contact(dict_user, dict_sample) # in dem_to_pf.py
+    plot_contact(dict_user, dict_sample) # in tools.py
     compute_as(dict_user, dict_sample) # in dem_to_pf.py
     tac_tempo = time.perf_counter() # compute performances
     dict_user['comp_as'] = dict_user['comp_as'] + tac_tempo-tic_tempo 
@@ -103,15 +105,26 @@ def run_yade(dict_user, dict_sample):
     'radius': dict_user['radius'],
     'E': dict_user['E'],
     'Poisson': dict_user['Poisson'],
+    'kn': dict_user['kn_dem'],
+    'ks': dict_user['ks_dem'],
     'n_ite_max': dict_user['n_ite_max'],
     'i_DEMPF_ite': dict_sample['i_DEMPF_ite'],
-    'L_pos_w': dict_user['L_pos_w']
+    'L_pos_w': dict_user['L_pos_w'],
+    'force_applied': dict_user['force_applied'],
+    'n_steady_state_detection': dict_user['n_steady_state_detection'],
+    'steady_state_detection': dict_user['steady_state_detection'],
+    'print_all_dem': 'all_dem' in dict_user['L_figures'],
+    'print_dem': 'dem' in dict_user['L_figures'],
+    'print_vtk': 'yade_vtk' in dict_user['L_figures']
     }
     with open('data/main_to_dem.data', 'wb') as handle:
         pickle.dump(dict_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
     tac_tempo = time.perf_counter() # compute performances
     dict_user['save_dem'] = dict_user['save_dem'] + tac_tempo-tic_tempo 
     
+    if 'yade_vtk' in dict_user['L_figures']:
+        create_folder('vtk/yade') # from tools.py
+
     # dem
     print('Running DEM')
     tic_dem = time.perf_counter() # compute dem performances
@@ -122,10 +135,16 @@ def run_yade(dict_user, dict_sample):
     dict_user['L_t_dem'].append(tac_dem-tic_dem)
     dict_user['solve_dem'] = dict_user['solve_dem'] + tac_dem-tic_dem 
     
+    # sort files
+    #sort_dem_files(dict_user, dict_sample) # from dem_to_pf.py
+
     # load data
     tic_tempo = time.perf_counter() # compute performances
     with open('data/dem_to_main.data', 'rb') as handle:
         dict_save = pickle.load(handle)
+    dict_user['L_overlap'].append(dict_save['overlap'])
+    dict_user['L_normal_force'].append(dict_save['normal_force'])
+    plot_dem(dict_user, dict_sample) # from tools.py
     tac_tempo = time.perf_counter() # compute performances
     dict_user['read_dem'] = dict_user['read_dem'] + tac_tempo-tic_tempo 
         
@@ -141,7 +160,9 @@ create_folder('vtk') # from tools.py
 create_folder('plot') # from tools.py
 if 'configuration_eta' in dict_user['L_figures'] or\
    'configuration_c' in dict_user['L_figures']:
-    create_folder('plot/configuration')
+    create_folder('plot/configuration') # from tools.py
+if 'all_dem' in dict_user['L_figures']:
+    create_folder('plot/dem') # from tools.py
 create_folder('data') # from tools.py
 create_folder('input') # from tools.py
 create_folder('dict') # from tools.py

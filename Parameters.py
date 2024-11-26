@@ -21,29 +21,21 @@ def get_parameters():
     #---------------------------------------------------------------------#
     # PFDEM
 
-    n_DEMPF_ite = 5 # number of PFDEM iterations
+    n_DEMPF_ite = 2 # number of PFDEM iterations
     n_proc = 4 # number of processors used
     j_total = 0 # index global of results
     n_max_vtk_files = None # maximum number of vtk files (can be None to save all files)
 
     # Select Figures to plot
     # Available:
-    # n_grain_kc_map, sum_etai_c, configuration_eta, configuration_cmean_etai_c, mass_loss, performances, dim_dom
-    # 
-    L_figures = ['mean_etai_c', 'mass_loss', 'performances','configuration_eta', 'configuration_c']
-
-    #---------------------------------------------------------------------#
-    # DEM (Yade)
-
-    # steady state detection
-    n_ite_max = 10 # maximum number of iteration during a DEM step
-    
-    # DEM material parameters
-    # Young modulus
-    E = 2e9 # (kg m-1 s-2)
-
-    # Poisson ratio
-    Poisson = 0.3
+    # n_grain_kc_map, sum_etai_c, configuration_eta, configuration_c, mean_etai_c, mass_loss, performances
+    # dem, all_dem, overlap, normal_force, yade_vtk
+    # contact_box, contact_volume, contact_surface, as, pressure
+    # displacement
+    L_figures = ['mean_etai_c',\
+                 'overlap', \
+                 'contact_volume', 'contact_surface', 'as',\
+                 'displacement']
 
     #---------------------------------------------------------------------#
     # Grain description
@@ -56,6 +48,28 @@ def get_parameters():
     radius = 100*1e-6/n_dist # m/m
 
     #---------------------------------------------------------------------#
+    # DEM (Yade)
+
+    # steady state detection
+    n_ite_max = 5000 # maximum number of iteration during a DEM step
+    n_steady_state_detection = 100 # window size for the steady state detection
+    steady_state_detection = 0.05 # criterion for the steady state detection
+
+    # DEM material parameters
+    # Young modulus
+    E = 7e13 # (kg m-1 s-2)
+
+    # Poisson ratio
+    Poisson = 0.3
+
+    # stiffness
+    kn = E*radius
+    ks = E*Poisson*radius
+
+    # force applied
+    force_applied =  0.05*E*radius**2 # (kg m s-2)
+
+    #---------------------------------------------------------------------#
     # Phase-Field (Moose)
 
     # mesh
@@ -63,10 +77,11 @@ def get_parameters():
     x_max =  1.2*radius
     y_min =  x_min
     y_max =  x_max
-    n_mesh_xy = 30
-    z_min = 2*x_min
-    z_max = 2*x_max
-    n_mesh_z = 2*n_mesh_xy
+    n_mesh_xy = 40
+    factor_z_xy = 2
+    z_min = factor_z_xy*x_min
+    z_max = factor_z_xy*x_max
+    n_mesh_z = factor_z_xy*n_mesh_xy
     m_size_mesh = ((x_max-x_min)/(n_mesh_xy-1)+(y_max-y_min)/(n_mesh_xy-1)+(z_max-z_min)/(n_mesh_z-1))/3
     check_database = True
 
@@ -91,7 +106,7 @@ def get_parameters():
 
     # kinetics of dissolution and precipitation
     # it affects the tilting coefficient in Ed
-    k_diss = 3*(0.005)/(m_size_mesh) # ed_j = ed_i*m_i/m_j
+    k_diss = 1*(0.005)/(m_size_mesh) # ed_j = ed_i*m_i/m_j
     k_prec = k_diss # -
 
     # molar concentration at the equilibrium
@@ -104,19 +119,16 @@ def get_parameters():
     struct_element = np.array(np.ones((n_struct_element,n_struct_element,n_struct_element)), dtype=bool) # for dilation
 
     # the time stepping and duration of one PF simualtion
-    dt_PF = (0.001*24*60*60)/n_time # time step
+    dt_PF = (0.01*24*60*60)/n_time # time step
     # n_t_PF*dt_PF gives the total time duration
+    #n_t_PF = 200 # number of iterations
     n_t_PF = 10 # number of iterations
 
     # the criteria on residual
-    crit_res = 1e-2
+    crit_res = 1e-3
     
     # Contact box detection
-    eta_contact_box_detection = 0.5 # value of the phase field searched to determine the contact box
-
-    # Figure (plot all or current)
-    # The detection of the contact by a box
-    print_all_contact_detection = False # else only the current one is printed
+    eta_contact_box_detection = 0.1 # value of the phase field searched to determine the contact box
 
     #---------------------------------------------------------------------#
     # Wall positions
@@ -132,13 +144,22 @@ def get_parameters():
     # Grain positions
     # x, y, z
 
-    L_pos_g = [[0, 0, -radius],
-               [0, 0,  radius]]
+    L_pos_g = [[0, 0, -0.98*radius],
+               [0, 0,  0.98*radius]]
 
     #---------------------------------------------------------------------#
     # trackers
 
     L_displacement = []
+    L_overlap = []
+    L_normal_force = []
+    L_contact_box_x = []
+    L_contact_box_y = []
+    L_contact_box_z = []
+    L_contact_volume = []
+    L_contact_surface = []
+    L_contact_as = []
+    L_contact_pressure = []
     L_sum_eta_1 = []
     L_sum_eta_2 = []
     L_sum_c = []
@@ -179,8 +200,13 @@ def get_parameters():
     'n_max_vtk_files': n_max_vtk_files,
     'L_figures': L_figures,
     'n_ite_max': n_ite_max,
+    'n_steady_state_detection': n_steady_state_detection,
+    'steady_state_detection': steady_state_detection,
     'E': E,
     'Poisson': Poisson,
+    'kn_dem': kn,
+    'ks_dem': ks,
+    'force_applied': force_applied,
     'Shape': Shape,
     'radius': radius,
     'check_database': check_database,
@@ -202,10 +228,18 @@ def get_parameters():
     'n_t_PF': n_t_PF,
     'crit_res': crit_res,
     'eta_contact_box_detection': eta_contact_box_detection,
-    'print_all_contact_detection': print_all_contact_detection,
     'L_pos_g': L_pos_g,
     'L_pos_w': L_pos_w,
     'L_displacement': L_displacement,
+    'L_overlap': L_overlap,
+    'L_normal_force': L_normal_force,
+    'L_contact_box_x': L_contact_box_x,
+    'L_contact_box_y': L_contact_box_y,
+    'L_contact_box_z': L_contact_box_z,
+    'L_contact_volume': L_contact_volume,
+    'L_contact_surface': L_contact_surface,
+    'L_contact_as': L_contact_as,
+    'L_contact_pressure': L_contact_pressure,
     'L_sum_eta_1': L_sum_eta_1,
     'L_sum_eta_2': L_sum_eta_2,
     'L_sum_c': L_sum_c,

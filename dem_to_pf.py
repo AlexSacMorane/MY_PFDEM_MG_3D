@@ -25,7 +25,9 @@ def move_phasefield(dict_user, dict_sample):
 
     # tracker
     dict_user['L_displacement'].append(dict_save['displacement'])
-    
+    if 'displacement' in dict_user['L_figures']:
+      plot_displacement(dict_user, dict_sample) # from tools.py
+
     # here eta_1 does not move 
 
     # loading old variables
@@ -48,7 +50,7 @@ def move_phasefield(dict_user, dict_sample):
         elif displacement[0] > 0:
             if dict_sample['x_L'][0] <= x-displacement[0]:
                 # look for window
-                while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] < dict_sample['x_L'][i_x_old+1]):
+                while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
                     i_x_old = i_x_old + 1
                 # interpolate
                 eta_2_map_new[i_x, :, :] = (eta_2_map[(i_x_old+1), :, :] - eta_2_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
@@ -121,10 +123,94 @@ def move_phasefield(dict_user, dict_sample):
 
 # -----------------------------------------------------------------------------#
 
+def compute_contact(dict_user, dict_sample):
+  '''
+  Compute the contact characteristics:
+    - box
+    - maximum surface
+    - volume
+  '''
+  # box initialization
+  x_box_min = None
+  x_box_max = None
+  y_box_min = None
+  y_box_max = None
+  z_box_min = None
+  z_box_max = None
+  # volume
+  vol_contact = 0
+  # surface 
+  surf_contact = 0
+
+  # iterate on mesh
+  for i_x in range(len(dict_sample['x_L'])):
+    for i_y in range(len(dict_sample['y_L'])):
+      # initialyze surface at this z
+      surf_contact_z = 0
+      for i_z in range(len(dict_sample['z_L'])):
+        # contact detection
+        if dict_sample['eta_1_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
+           dict_sample['eta_2_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
+          # compute box dimensions
+          if x_box_min == None:
+            x_box_min = dict_sample['x_L'][i_x]
+            x_box_max = dict_sample['x_L'][i_x]
+            y_box_min = dict_sample['y_L'][i_y]
+            y_box_max = dict_sample['y_L'][i_y]
+            z_box_min = dict_sample['z_L'][i_z]
+            z_box_max = dict_sample['z_L'][i_z]
+          else :
+            if dict_sample['x_L'][i_x] < x_box_min:
+              x_box_min = dict_sample['x_L'][i_x]
+            if x_box_max < dict_sample['x_L'][i_x]:
+              x_box_max = dict_sample['x_L'][i_x]
+            if dict_sample['y_L'][i_y] < y_box_min:
+              y_box_min = dict_sample['y_L'][i_y]
+            if y_box_max < dict_sample['y_L'][i_y]:
+              y_box_max = dict_sample['y_L'][i_y]
+            if dict_sample['z_L'][i_z] < z_box_min:
+              z_box_min = dict_sample['z_L'][i_z]
+            if z_box_max < dict_sample['z_L'][i_z]:
+              z_box_max = dict_sample['z_L'][i_z]
+          # compute volume contact
+          vol_contact = vol_contact + (dict_sample['x_L'][1]-dict_sample['x_L'][0])*\
+                                      (dict_sample['y_L'][1]-dict_sample['y_L'][0])*\
+                                      (dict_sample['z_L'][1]-dict_sample['z_L'][0])
+          # compute surface at this z
+          surf_contact_z = surf_contact_z + (dict_sample['x_L'][1]-dict_sample['x_L'][0])*\
+                                            (dict_sample['y_L'][1]-dict_sample['y_L'][0])
+      # compare surface at this z with the maximum registered
+      if surf_contact < surf_contact_z:
+         surf_contact = surf_contact_z  
+  # if no contact detected
+  if x_box_min == None:
+    x_box_min = 0
+    x_box_max = 0
+    y_box_min = 0
+    y_box_max = 0
+    z_box_min = 0
+    z_box_max = 0
+  # save
+  dict_sample['contact_box'] = [x_box_min, x_box_max, y_box_min, y_box_max, z_box_min, z_box_max]
+  dict_sample['vol_contact'] = vol_contact
+  dict_sample['surf_contact'] = surf_contact
+  dict_user['L_contact_box_x'].append(x_box_max-x_box_min)
+  dict_user['L_contact_box_y'].append(y_box_max-y_box_min)
+  dict_user['L_contact_box_z'].append(z_box_max-z_box_min)
+  dict_user['L_contact_volume'].append(vol_contact)
+  dict_user['L_contact_surface'].append(surf_contact)
+
+# -----------------------------------------------------------------------------#
+
 def compute_as(dict_user, dict_sample):
     '''
     Compute activity of solid.
     '''
+    # load data
+    with open('data/dem_to_main.data', 'rb') as handle:
+        dict_save = pickle.load(handle)
+    normal_force = dict_save['normal_force']
+
     # init
     dict_sample['as_map'] = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
     
@@ -132,10 +218,22 @@ def compute_as(dict_user, dict_sample):
     for i_x in range(len(dict_sample['x_L'])):
         for i_y in range(len(dict_sample['y_L'])):
             for i_z in range(len(dict_sample['z_L'])):
-                # determine pressure
-                P = 0 # Pa
+                # contact detection
+                if dict_sample['eta_1_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
+                   dict_sample['eta_2_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
+                    # determine pressure
+                    P = normal_force/dict_sample['surf_contact'] # Pa
+                else :
+                    # determine pressure
+                    P = 0 # Pa
                 # save in the map
                 dict_sample['as_map'][i_x, i_y, i_z] = math.exp(P*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature']))
+    # save
+    dict_user['L_contact_as'].append(math.exp(normal_force/dict_sample['surf_contact']*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature'])))
+    dict_user['L_contact_pressure'].append(normal_force/dict_sample['surf_contact'])
+
+    # plot 
+    plot_as_pressure(dict_user, dict_sample) # from tools.py
 
     # write as
     write_array_txt(dict_sample, 'as', dict_sample['as_map'])
@@ -249,7 +347,6 @@ def write_array_txt(dict_sample, namefile, data_array):
     # close
     file_to_write.close()
 
-
 #-------------------------------------------------------------------------------
 
 def write_i(dict_user, dict_sample):
@@ -301,3 +398,13 @@ def write_i(dict_user, dict_sample):
     file_to_write.write(line)
 
   file_to_write.close()
+    
+#-------------------------------------------------------------------------------
+
+def sort_dem_files(dict_user, dict_sample):
+  '''
+  Sort the files from the YADE simulation.
+  '''
+  # rename files
+  os.rename('vtk/ite_PFDEM_'+str(dict_sample['i_DEMPF_ite'])+'_lsBodies.0.vtm',\
+            'vtk/ite_PFDEM_'+str(dict_sample['i_DEMPF_ite'])+'.vtm')

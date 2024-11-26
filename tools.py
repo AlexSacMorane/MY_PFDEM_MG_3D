@@ -309,6 +309,89 @@ def plot_performances(dict_user, dict_sample):
                 
 #------------------------------------------------------------------------------------------------------------------------------------------ #
 
+def plot_dem(dict_user, dict_sample):
+    '''
+    Plot figure illustrating the overlap and force transmitted.
+    '''
+    if 'overlap' in dict_user['L_figures']:
+        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+        ax1.plot(dict_user['L_overlap'])
+        ax1.set_xlabel('iterations (-)')
+        ax1.set_ylabel('overlap in DEM (-)')
+        fig.tight_layout()
+        fig.savefig('plot/dem_overlap.png')
+        plt.close(fig)
+    if 'normal_force' in dict_user['L_figures']:
+        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+        ax1.plot(dict_user['L_normal_force'], label='DEM')
+        ax1.plot([0, len(dict_user['L_normal_force'])-1],\
+                 [dict_user['force_applied'], dict_user['force_applied']], label='target')
+        ax1.legend()
+        ax1.set_xlabel('iterations (-)')
+        ax1.set_ylabel('normal force (-)')
+        fig.tight_layout()
+        fig.savefig('plot/dem_normal_force.png')
+        plt.close(fig)
+
+#------------------------------------------------------------------------------------------------------------------------------------------ #
+
+def plot_contact(dict_user, dict_sample):
+    '''
+    Plot figure illustrating the contact characteristics.
+    '''
+    if 'contact_box' in dict_user['L_figures']:
+        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+        ax1.plot(dict_user['L_contact_box_x'], label='x')
+        ax1.plot(dict_user['L_contact_box_y'], label='y')
+        ax1.plot(dict_user['L_contact_box_z'], label='z')
+        ax1.legend()
+        ax1.set_xlabel('iterations (-)')
+        ax1.set_ylabel('contact box dimensions (-)')
+        fig.tight_layout()
+        fig.savefig('plot/contact_box.png')
+        plt.close(fig)
+    if 'contact_volume' in dict_user['L_figures']:
+        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+        ax1.plot(dict_user['L_contact_volume'])
+        ax1.set_xlabel('iterations (-)')
+        ax1.set_ylabel('contact volume (-)')
+        fig.tight_layout()
+        fig.savefig('plot/contact_volume.png')
+        plt.close(fig)
+    if 'contact_surface' in dict_user['L_figures']:
+        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+        ax1.plot(dict_user['L_contact_surface'], label='DEM')
+        ax1.set_xlabel('iterations (-)')
+        ax1.set_ylabel('contact surface (-)')
+        fig.tight_layout()
+        fig.savefig('plot/contact_surface.png')
+        plt.close(fig)
+
+#------------------------------------------------------------------------------------------------------------------------------------------ #
+
+def plot_as_pressure(dict_user, dict_sample):
+    '''
+    Plot figure illustrating the solid activity and pressure at the contact.
+    '''
+    if 'as' in dict_user['L_figures']:
+        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+        ax1.plot(dict_user['L_contact_as'])
+        ax1.set_xlabel('iterations (-)')
+        ax1.set_ylabel('solid activity (-)')
+        fig.tight_layout()
+        fig.savefig('plot/contact_as.png')
+        plt.close(fig)
+    if 'pressure' in dict_user['L_figures']:
+        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+        ax1.plot(dict_user['L_contact_pressure'])
+        ax1.set_xlabel('iterations (-)')
+        ax1.set_ylabel('solid pressure (-)')
+        fig.tight_layout()
+        fig.savefig('plot/contact_pressure.png')
+        plt.close(fig)
+
+#------------------------------------------------------------------------------------------------------------------------------------------ #
+
 def plot_slices(dict_user, dict_sample):
     '''
     Plot slices of the configuration.
@@ -376,4 +459,26 @@ def plot_slices(dict_user, dict_sample):
         fig.tight_layout()
         fig.savefig('plot/configuration/c_'+str(dict_sample['i_DEMPF_ite'])+'.png')
         plt.close(fig)
-   
+
+#------------------------------------------------------------------------------------------------------------------------------------------ #
+
+def plot_displacement(dict_user, dict_sample):
+    '''
+    Plot figure illustrating the cumulative displacement.
+    '''
+    # pp data
+    L_strain = []
+    for i_displacement in range(len(dict_user['L_displacement'])):
+        if i_displacement == 0:
+            L_displacement_cum = [dict_user['L_displacement'][i_displacement][2]]
+        else : 
+            L_displacement_cum.append(L_displacement_cum[-1]+dict_user['L_displacement'][i_displacement][2])
+        L_strain.append(L_displacement_cum[-1]/(2*dict_user['radius']))
+    # plot
+    fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+    ax1.plot(L_strain)
+    ax1.set_xlabel('iterations (-)')
+    ax1.set_ylabel('vertical strain (-)')
+    fig.tight_layout()
+    fig.savefig('plot/vertical_strain.png')
+    plt.close(fig)
