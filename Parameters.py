@@ -121,9 +121,8 @@ def get_parameters():
     # the time stepping and duration of one PF simualtion
     dt_PF = (0.01*24*60*60)/n_time # time step
     # n_t_PF*dt_PF gives the total time duration
-    #n_t_PF = 200 # number of iterations
-    n_t_PF = 10 # number of iterations
-
+    n_t_PF = 200 # number of iterations
+    
     # the criteria on residual
     crit_res = 1e-3
     
@@ -150,22 +149,20 @@ def get_parameters():
     #---------------------------------------------------------------------#
     # trackers
 
-    L_displacement = []
-    L_overlap = []
-    L_normal_force = []
-    L_contact_box_x = []
-    L_contact_box_y = []
-    L_contact_box_z = []
-    L_contact_volume = []
-    L_contact_surface = []
-    L_contact_as = []
-    L_contact_pressure = []
-    L_sum_eta_1 = []
-    L_sum_eta_2 = []
+    L_L_displacement = []
+    L_L_overlap = []
+    L_L_normal_force = []
+    L_L_contact_box_x = []
+    L_L_contact_box_y = []
+    L_L_contact_box_z = []
+    L_L_contact_volume = []
+    L_L_contact_surface = []
+    L_L_contact_as = []
+    L_L_contact_pressure = []
+    L_L_sum_eta_i = []
     L_sum_c = []
     L_sum_mass = []
-    L_m_eta_1 = []
-    L_m_eta_2 = []
+    L_L_m_eta_i = []
     L_m_c = []
     L_m_mass = []
     L_t_pf_to_dem_1 = []
@@ -174,16 +171,13 @@ def get_parameters():
     L_t_dem_to_pf = []
     L_t_pf = []
     L_grain_kc_map = []
-    L_loss_move_pf_eta1 = []
-    L_loss_move_pf_eta2 = []
+    L_L_loss_move_pf_eta_i = []
     L_loss_move_pf_c = []
     L_loss_move_pf_m = []
-    L_loss_kc_eta1 = []
-    L_loss_kc_eta2 = []
+    L_L_loss_kc_eta_i = []
     L_loss_kc_c = []
     L_loss_kc_m = []
-    L_loss_pf_eta1 = []
-    L_loss_pf_eta2 = []
+    L_L_loss_pf_eta_i = []
     L_loss_pf_c = []
     L_loss_pf_m = []
 
@@ -230,22 +224,20 @@ def get_parameters():
     'eta_contact_box_detection': eta_contact_box_detection,
     'L_pos_g': L_pos_g,
     'L_pos_w': L_pos_w,
-    'L_displacement': L_displacement,
-    'L_overlap': L_overlap,
-    'L_normal_force': L_normal_force,
-    'L_contact_box_x': L_contact_box_x,
-    'L_contact_box_y': L_contact_box_y,
-    'L_contact_box_z': L_contact_box_z,
-    'L_contact_volume': L_contact_volume,
-    'L_contact_surface': L_contact_surface,
-    'L_contact_as': L_contact_as,
-    'L_contact_pressure': L_contact_pressure,
-    'L_sum_eta_1': L_sum_eta_1,
-    'L_sum_eta_2': L_sum_eta_2,
+    'L_L_displacement': L_L_displacement,
+    'L_L_overlap': L_L_overlap,
+    'L_L_normal_force': L_L_normal_force,
+    'L_L_contact_box_x': L_L_contact_box_x,
+    'L_L_contact_box_y': L_L_contact_box_y,
+    'L_L_contact_box_z': L_L_contact_box_z,
+    'L_L_contact_volume': L_L_contact_volume,
+    'L_L_contact_surface': L_L_contact_surface,
+    'L_L_contact_as': L_L_contact_as,
+    'L_L_contact_pressure': L_L_contact_pressure,
+    'L_L_sum_eta_i': L_L_sum_eta_i,
     'L_sum_c': L_sum_c,
     'L_sum_mass': L_sum_mass,
-    'L_m_eta_1': L_m_eta_1,
-    'L_m_eta_2': L_m_eta_2,
+    'L_L_m_eta_i': L_L_m_eta_i,
     'L_m_c': L_m_c,
     'L_m_mass': L_m_mass,
     'L_t_pf_to_dem_1': L_t_pf_to_dem_1,
@@ -254,16 +246,13 @@ def get_parameters():
     'L_t_dem_to_pf': L_t_dem_to_pf,
     'L_t_pf': L_t_pf,
     'L_grain_kc_map': L_grain_kc_map,
-    'L_loss_move_pf_eta1': L_loss_move_pf_eta1,
-    'L_loss_move_pf_eta2': L_loss_move_pf_eta2,
+    'L_L_loss_move_pf_eta_i': L_L_loss_move_pf_eta_i,
     'L_loss_move_pf_c': L_loss_move_pf_c,
     'L_loss_move_pf_m': L_loss_move_pf_m,
-    'L_loss_kc_eta1': L_loss_kc_eta1,
-    'L_loss_kc_eta2': L_loss_kc_eta2,
+    'L_L_loss_kc_eta_i': L_L_loss_kc_eta_i,
     'L_loss_kc_c': L_loss_kc_c,
     'L_loss_kc_m': L_loss_kc_m,
-    'L_loss_pf_eta1': L_loss_pf_eta1,
-    'L_loss_pf_eta2': L_loss_pf_eta2,
+    'L_L_loss_pf_eta_i': L_L_loss_pf_eta_i,
     'L_loss_pf_c': L_loss_pf_c,
     'L_loss_pf_m': L_loss_pf_m,
     'x_min': x_min,

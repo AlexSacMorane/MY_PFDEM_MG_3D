@@ -82,10 +82,6 @@ def read_vtk(dict_user, dict_sample, j_str):
 
     Do not work calling yade.
     '''
-    eta_1_map_old = dict_sample['eta_1_map'].copy()
-    c_map_old = dict_sample['c_map'].copy()
-    L_eta1 = []
-    L_c = []
     if not dict_sample['Map_known']:
         L_XYZ = []
         L_L_i_XYZ = []
@@ -104,14 +100,16 @@ def read_vtk(dict_user, dict_sample, j_str):
 
         # Grab a scalar from the vtk file
         nodes_vtk_array = reader.GetOutput().GetPoints().GetData()
-        eta1_vtk_array = reader.GetOutput().GetPointData().GetArray("eta1")
-        eta2_vtk_array = reader.GetOutput().GetPointData().GetArray("eta2")
+        L_etai_vtk_array = []
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            L_etai_vtk_array.append(reader.GetOutput().GetPointData().GetArray("eta"+str(i_grain+1)))
         c_vtk_array = reader.GetOutput().GetPointData().GetArray("c")
 
         #Get the coordinates of the nodes and the scalar values
         nodes_array = vtk_to_numpy(nodes_vtk_array)
-        eta1_array = vtk_to_numpy(eta1_vtk_array)
-        eta2_array = vtk_to_numpy(eta2_vtk_array)
+        L_etai_array = []
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            L_etai_array.append(vtk_to_numpy(L_etai_vtk_array[i_grain]))
         c_array = vtk_to_numpy(c_vtk_array)
 
         # map is not know
@@ -134,8 +132,8 @@ def read_vtk(dict_user, dict_sample, j_str):
                     L_XYZ.append(list(XYZ))
                     L_i_XYZ.append([i_x, i_y, i_z])
                     # rewrite map
-                    dict_sample['eta_1_map'][i_x, i_y, i_z] = eta1_array[i_XYZ]
-                    dict_sample['eta_2_map'][i_x, i_y, i_z] = eta2_array[i_XYZ]
+                    for i_grain in range(len(dict_sample['L_etai_map'])):
+                        dict_sample['L_etai_map'][i_grain][i_x, i_y, i_z] = L_etai_array[i_grain][i_XYZ]
                     dict_sample['c_map'][i_x, i_y, i_z] = c_array[i_XYZ]
                 else :
                     L_i_XYZ.append(None)
@@ -152,8 +150,8 @@ def read_vtk(dict_user, dict_sample, j_str):
                     i_y = dict_sample['L_L_i_XYZ_used'][i_proc][i_XYZ][1]
                     i_z = dict_sample['L_L_i_XYZ_used'][i_proc][i_XYZ][2]
                     # rewrite map
-                    dict_sample['eta_1_map'][i_x, i_y, i_z] = eta1_array[i_XYZ]
-                    dict_sample['eta_2_map'][i_x, i_y, i_z] = eta2_array[i_XYZ]
+                    for i_grain in range(len(dict_sample['L_etai_map'])):
+                        dict_sample['L_etai_map'][i_grain][i_x, i_y, i_z] = L_etai_array[i_grain][i_XYZ]
                     dict_sample['c_map'][i_x, i_y, i_z] = c_array[i_XYZ]
     
     if not dict_sample['Map_known']:
@@ -167,40 +165,35 @@ def compute_levelset(dict_user, dict_sample):
     '''
     From a phase map, compute level set function.
     '''
-    # compute binary map
-    bin_1_map = np.array(np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z'])))
-    bin_2_map = np.array(np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z'])))
-    # iteration on x
-    for i_x in range(len(dict_sample['x_L'])):
-        # iteration on y
-        for i_y in range(len(dict_sample['y_L'])):
-            # iteration on z
-            for i_z in range(len(dict_sample['z_L'])):
-                # grain 1
-                if dict_sample['eta_1_map'][i_x, i_y, i_z] > 0.5:
-                    bin_1_map[i_x, i_y, i_z] = 1
-                else :
-                    bin_1_map[i_x, i_y, i_z] = -1
-                # grain 2
-                if dict_sample['eta_2_map'][i_x, i_y, i_z] > 0.5:
-                    bin_2_map[i_x, i_y, i_z] = 1
-                else :
-                    bin_2_map[i_x, i_y, i_z] = -1
-    # compute signed distance function
-    sdf_1_map = -skfmm.distance(bin_1_map, dx=np.array([dict_sample['x_L'][1]-dict_sample['x_L'][0],\
-                                                        dict_sample['y_L'][1]-dict_sample['y_L'][0],\
-                                                        dict_sample['z_L'][1]-dict_sample['z_L'][0]]))
-    sdf_2_map = -skfmm.distance(bin_2_map, dx=np.array([dict_sample['x_L'][1]-dict_sample['x_L'][0],\
-                                                        dict_sample['y_L'][1]-dict_sample['y_L'][0],\
-                                                        dict_sample['z_L'][1]-dict_sample['z_L'][0]]))
+    L_sdf_i_map = []
+    # iterate on the phase variable
+    for i_grain in range(len(dict_sample['L_etai_map'])):
+        # compute binary map
+        bin_i_map = np.array(np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z'])))
+        # iteration on x
+        for i_x in range(len(dict_sample['x_L'])):
+            # iteration on y
+            for i_y in range(len(dict_sample['y_L'])):
+                # iteration on z
+                for i_z in range(len(dict_sample['z_L'])):
+                    # grain 1
+                    if dict_sample['L_etai_map'][i_grain][i_x, i_y, i_z] > 0.5:
+                        bin_i_map[i_x, i_y, i_z] = 1
+                    else :
+                        bin_i_map[i_x, i_y, i_z] = -1
+        # compute signed distance function
+        sdf_i_map = -skfmm.distance(bin_i_map, dx=np.array([dict_sample['x_L'][1]-dict_sample['x_L'][0],\
+                                                            dict_sample['y_L'][1]-dict_sample['y_L'][0],\
+                                                            dict_sample['z_L'][1]-dict_sample['z_L'][0]]))
+        # save
+        L_sdf_i_map.append(sdf_i_map)
 
     # save data
     dict_save = {
     'L_x': dict_sample['x_L'],
     'L_y': dict_sample['y_L'],
     'L_z': dict_sample['z_L'],
-    'sdf_1_map': sdf_1_map,
-    'sdf_2_map': sdf_2_map
+    'L_sdf_i_map': L_sdf_i_map
     }
     with open('data/level_sets.data', 'wb') as handle:
         pickle.dump(dict_save, handle, protocol=pickle.HIGHEST_PROTOCOL)

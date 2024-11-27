@@ -5,17 +5,11 @@ import math, skfmm
 
 # ------------------------------------------------------------------------------------------------------------------------------------------ #
 
-def create_1_sphere(dict_user, dict_sample):
+def create_spheres(dict_user, dict_sample):
     '''
-    Create initial conditions with 1 sphere.
+    Create initial conditions with spheres.
     Mesh and phase field maps are generated
     '''    
-    # ------------------------------------------------------------------------------------------------------------------------------------------ #
-    # position of the grains
-
-    pos_1 = dict_user['L_pos_g'][0]
-    pos_2 = dict_user['L_pos_g'][1]
-
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
     # Create initial mesh
     print("Creating initial mesh")
@@ -25,46 +19,43 @@ def create_1_sphere(dict_user, dict_sample):
     z_L = np.linspace(dict_user['z_min'], dict_user['z_max'], dict_user['n_mesh_z'])
 
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
-    # Create initial phase map
-
+    # iterate on grains     
     print("Creating initial phase field maps")
 
-    eta_1_map = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-    eta_2_map = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+    L_etai_map = []
+    for i_grain in range(len(dict_user['L_pos_g'])):
+        # position of the grains
+        pos_i = dict_user['L_pos_g'][i_grain]
 
-    # iteration on x
-    for i_x in range(len(x_L)):
-        x = x_L[i_x]
-        # iteration on y
-        for i_y in range(len(y_L)):
-            y = y_L[i_y]
-            # iteration on z
-            for i_z in range(len(z_L)):
-                z = z_L[i_z]
+        # Create initial phase map  
+        eta_i_map = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+    
+        # iteration on x
+        for i_x in range(len(x_L)):
+            x = x_L[i_x]
+            # iteration on y
+            for i_y in range(len(y_L)):
+                y = y_L[i_y]
+                # iteration on z
+                for i_z in range(len(z_L)):
+                    z = z_L[i_z]
 
-                # distance to grains
-                d_node_to_g1 = np.linalg.norm(np.array([x,y,z])-np.array(pos_1))
-                d_node_to_g2 = np.linalg.norm(np.array([x,y,z])-np.array(pos_2))
+                    # distance to grains
+                    d_node_to_g = np.linalg.norm(np.array([x,y,z])-np.array(pos_i))
 
-                # eta 1
-                if d_node_to_g1 <= dict_user['radius']-dict_user['w_int']/2 :
-                    eta_1_map[i_x, i_y, i_z] = 1
-                elif dict_user['radius']-dict_user['w_int']/2 < d_node_to_g1 and d_node_to_g1 < dict_user['radius']+dict_user['w_int']/2:
-                    eta_1_map[i_x, i_y, i_z] = 0.5*(1+math.cos(math.pi*(d_node_to_g1-dict_user['radius']+dict_user['w_int']/2)/dict_user['w_int']))
-                elif dict_user['radius']+dict_user['w_int']/2 <= d_node_to_g1 :
-                    eta_1_map[i_x, i_y, i_z] = 0
-
-                # eta 2
-                if d_node_to_g2 <= dict_user['radius']-dict_user['w_int']/2 :
-                    eta_2_map[i_x, i_y, i_z] = 1
-                elif dict_user['radius']-dict_user['w_int']/2 < d_node_to_g2 and d_node_to_g2 < dict_user['radius']+dict_user['w_int']/2:
-                    eta_2_map[i_x, i_y, i_z] = 0.5*(1+math.cos(math.pi*(d_node_to_g2-dict_user['radius']+dict_user['w_int']/2)/dict_user['w_int']))
-                elif dict_user['radius']+dict_user['w_int']/2 <= d_node_to_g2 :
-                    eta_2_map[i_x, i_y, i_z] = 0
+                    # compute phase variable
+                    if d_node_to_g <= dict_user['radius']-dict_user['w_int']/2 :
+                        eta_i_map[i_x, i_y, i_z] = 1
+                    elif dict_user['radius']-dict_user['w_int']/2 < d_node_to_g and d_node_to_g < dict_user['radius']+dict_user['w_int']/2:
+                        eta_i_map[i_x, i_y, i_z] = 0.5*(1+math.cos(math.pi*(d_node_to_g-dict_user['radius']+dict_user['w_int']/2)/dict_user['w_int']))
+                    elif dict_user['radius']+dict_user['w_int']/2 <= d_node_to_g :
+                        eta_i_map[i_x, i_y, i_z] = 0
+        
+        # save
+        L_etai_map.append(eta_i_map)
 
     # save dict
-    dict_sample['eta_1_map'] = eta_1_map
-    dict_sample['eta_2_map'] = eta_2_map
+    dict_sample['L_etai_map'] = L_etai_map
     dict_sample['x_L'] = x_L
     dict_sample['y_L'] = y_L
     dict_sample['z_L'] = z_L

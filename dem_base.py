@@ -31,18 +31,16 @@ def create_grains():
     )   
 
     # grains
-    O.bodies.append(
-        levelSetBody(grid=grid,
-                     distField=sdf_1_map.tolist(),
-                     material=0)
-    )
-    O.bodies[-1].state.blockedDOFs = 'xyzXYZ'
-    O.bodies.append(
-        levelSetBody(grid=grid,
-                     distField=sdf_2_map.tolist(),
-                     material=0)
-    )
-    O.bodies[-1].state.blockedDOFs = 'XYZ'
+    for i_grain in range(len(L_sdf_i_map)):
+        O.bodies.append(
+            levelSetBody(grid=grid,
+                        distField=L_sdf_i_map[i_grain].tolist(),
+                        material=0)
+        )
+        if i_grain == 0: 
+            O.bodies[-1].state.blockedDOFs = 'xyzXYZ'
+        else :
+            O.bodies[-1].state.blockedDOFs = 'XYZ'
 
 # -----------------------------------------------------------------------------#
 
@@ -187,8 +185,7 @@ with open('data/level_sets.data', 'rb') as handle:
 L_x = dict_save['L_x']
 L_y = dict_save['L_y']
 L_z = dict_save['L_z']
-sdf_1_map = dict_save['sdf_1_map']
-sdf_2_map = dict_save['sdf_2_map']
+L_sdf_i_map = dict_save['L_sdf_i_map']
 
 # -----------------------------------------------------------------------------#
 # Plan simulation
@@ -217,15 +214,25 @@ O.wait()
 # Output
 # -----------------------------------------------------------------------------#
 
-displacement = np.array(O.bodies[1].state.pos - O.bodies[1].state.refPos)
-overlap = plot.data['overlap'][-1]
-normal_force = plot.data['normal_force'][-1]
+L_displacement = []
+for i_grain in range(len(L_sdf_i_map)):
+    L_displacement.append(np.array(O.bodies[i_grain].state.pos - O.bodies[i_grain].state.refPos))
+L_contact = []
+for i in O.interactions:
+    # work only on grain-grain contact
+    if isinstance(O.bodies[i.id1].shape, LevelSet) and isinstance(O.bodies[i.id2].shape, LevelSet):
+        if i.id1 < i.id2:
+            id_smaller = i.id1
+            id_larger  = i.id2
+        else:
+            id_smaller = i.id2
+            id_larger  = i.id1
+        L_contact.append([id_smaller, id_larger, i.geom.penetrationDepth, np.array([i.phys.normalForce[0], i.phys.normalForce[1], i.phys.normalForce[2]])])
 
 # Save data
 dict_save = {
-'displacement': displacement,
-'overlap': overlap,
-'normal_force': normal_force
+'L_displacement': L_displacement,
+'L_contact': L_contact
 }
 with open('data/dem_to_main.data', 'wb') as handle:
     pickle.dump(dict_save, handle, protocol=pickle.HIGHEST_PROTOCOL)

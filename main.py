@@ -31,9 +31,9 @@ def run_moose(dict_user, dict_sample):
     compute_mass_loss(dict_user, dict_sample, 'L_loss_move_pf') # from tools.py
     
     # write pf file
-    write_array_txt(dict_sample, 'eta_1', dict_sample['eta_1_map']) # from dem_to_pf.py
-    write_array_txt(dict_sample, 'eta_2', dict_sample['eta_2_map']) # from dem_to_pf.py
-
+    for i_grain in range(len(dict_sample['L_etai_map'])):
+        write_array_txt(dict_sample, 'eta_'+str(i_grain+1), dict_sample['L_etai_map'][i_grain]) # from dem_to_pf.py
+    
     # from dem to pf
     # compute mass
     compute_mass(dict_user, dict_sample) # from tools.py
@@ -59,7 +59,7 @@ def run_moose(dict_user, dict_sample):
     tac_dem_to_pf = time.perf_counter() # compute dem_to_pf performances
     dict_user['L_t_dem_to_pf'].append(tac_dem_to_pf-tic_dem_to_pf)
     dict_user['write_i'] = dict_user['write_i'] + tac_tempo-tic_tempo 
-    
+
     # pf
     # compute mass
     compute_mass(dict_user, dict_sample) # from tools.py
@@ -142,9 +142,36 @@ def run_yade(dict_user, dict_sample):
     tic_tempo = time.perf_counter() # compute performances
     with open('data/dem_to_main.data', 'rb') as handle:
         dict_save = pickle.load(handle)
-    dict_user['L_overlap'].append(dict_save['overlap'])
-    dict_user['L_normal_force'].append(dict_save['normal_force'])
-    plot_dem(dict_user, dict_sample) # from tools.py
+    L_contact = dict_save['L_contact']
+    # iterate on potential contact
+    ij = 0
+    for i_grain in range(len(dict_sample['L_etai_map'])-1):
+        for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
+            i_contact = 0
+            contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            while not contact_found:
+                i_contact + 1
+                if i_contact == len(L_contact):
+                    break
+                else :
+                    contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            if dict_sample['i_DEMPF_ite'] == 1:
+                if contact_found:
+                    dict_user['L_L_overlap'].append([L_contact[i_contact][2]])
+                    dict_user['L_L_normal_force'].append([L_contact[i_contact][3]])
+                else:
+                    dict_user['L_L_overlap'].append([0])
+                    dict_user['L_L_normal_force'].append([np.array([0,0,0])])
+            else :
+                if contact_found:
+                    dict_user['L_L_overlap'][ij].append(L_contact[i_contact][2])
+                    dict_user['L_L_normal_force'][ij].append(L_contact[i_contact][3])
+                else:
+                    dict_user['L_L_overlap'][ij].append(0)
+                    dict_user['L_L_normal_force'][ij].append(np.array([0,0,0]))
+            ij = ij + 1
+    # next function need to be adapted
+    #plot_dem(dict_user, dict_sample) # from tools.py
     tac_tempo = time.perf_counter() # compute performances
     dict_user['read_dem'] = dict_user['read_dem'] + tac_tempo-tic_tempo 
         
@@ -174,7 +201,7 @@ tic = time.perf_counter()
 # Create initial condition
 
 if dict_user['Shape'] == 'Sphere':
-    create_1_sphere(dict_user, dict_sample) # from ic.py
+    create_spheres(dict_user, dict_sample) # from ic.py
 create_solute(dict_user, dict_sample) # from ic.py
 
 # compute tracker

@@ -21,105 +21,105 @@ def move_phasefield(dict_user, dict_sample):
     # load data
     with open('data/dem_to_main.data', 'rb') as handle:
         dict_save = pickle.load(handle)
-    displacement = dict_save['displacement']
+    L_displacement = dict_save['L_displacement']
 
     # tracker
-    dict_user['L_displacement'].append(dict_save['displacement'])
+    dict_user['L_L_displacement'].append(dict_save['L_displacement'])
     if 'displacement' in dict_user['L_figures']:
       plot_displacement(dict_user, dict_sample) # from tools.py
 
-    # here eta_1 does not move 
+    # iterate on grains
+    # grain 0 is fixed
+    for i_grain in range(1, len(dict_sample['L_etai_map'])):
+      # read displacement
+      displacement = L_displacement[i_grain] 
 
-    # loading old variables
-    eta_2_map = dict_sample['eta_2_map']
-    # updating phase map
-    eta_2_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-    # iteration on x
-    for i_x in range(len(dict_sample['x_L'])):
-        x = dict_sample['x_L'][i_x]
-        i_x_old = 0
-        # eta 1 
-        if displacement[0] < 0:
-            if x-displacement[0] <= dict_sample['x_L'][-1]:
-                # look for window
-                while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
-                    i_x_old = i_x_old + 1
-                # interpolate
-                eta_2_map_new[i_x, :, :] = (eta_2_map[(i_x_old+1), :, :] - eta_2_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
-                                           (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_2_map[i_x_old, :, :]
-        elif displacement[0] > 0:
-            if dict_sample['x_L'][0] <= x-displacement[0]:
-                # look for window
-                while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
-                    i_x_old = i_x_old + 1
-                # interpolate
-                eta_2_map_new[i_x, :, :] = (eta_2_map[(i_x_old+1), :, :] - eta_2_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
-                                           (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_2_map[i_x_old, :, :]
-        else :
-            eta_2_map_new = eta_2_map
-    
-    # loading old variables
-    eta_2_map = eta_2_map_new.copy()
-    # updating phase map
-    eta_2_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-    # iteration on y
-    for i_y in range(len(dict_sample['y_L'])):
-        y = dict_sample['y_L'][i_y]
-        i_y_old = 0
-        # eta 1 
-        if displacement[1] < 0:
-            if y-displacement[1] <= dict_sample['y_L'][-1]:
-                # look for window
-                while not (dict_sample['y_L'][i_y_old] <= y-displacement[1] and y-displacement[1] <= dict_sample['y_L'][i_y_old+1]):
-                    i_y_old = i_y_old + 1
-                # interpolate
-                eta_2_map_new[:, i_y, :] = (eta_2_map[:, (i_y_old+1), :] - eta_2_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
-                                           (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_2_map[:, i_y_old, :]
-        elif displacement[1] > 0:
-            if dict_sample['y_L'][0] <= y-displacement[1]:
-                # look for window
-                while not (dict_sample['y_L'][i_y_old] <= y-displacement[1] and y-displacement[1] <= dict_sample['y_L'][i_y_old+1]):
-                    i_y_old = i_y_old + 1
-                # interpolate
-                eta_2_map_new[:, i_y, :] = (eta_2_map[:, (i_y_old+1), :] - eta_2_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
-                                           (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_2_map[:, i_y_old, :]
-        else :
-            eta_2_map_new = eta_2_map
+      # loading old variables
+      eta_i_map = dict_sample['L_etai_map'][i_grain]
+      # updating phase map
+      eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+      # iteration on x
+      for i_x in range(len(dict_sample['x_L'])):
+          x = dict_sample['x_L'][i_x]
+          i_x_old = 0
+          # eta 1 
+          if displacement[0] < 0:
+              if x-displacement[0] <= dict_sample['x_L'][-1]:
+                  # look for window
+                  while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
+                      i_x_old = i_x_old + 1
+                  # interpolate
+                  eta_i_map_new[i_x, :, :] = (eta_i_map[(i_x_old+1), :, :] - eta_i_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
+                                            (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
+          elif displacement[0] > 0:
+              if dict_sample['x_L'][0] <= x-displacement[0]:
+                  # look for window
+                  while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
+                      i_x_old = i_x_old + 1
+                  # interpolate
+                  eta_i_map_new[i_x, :, :] = (eta_i_map[(i_x_old+1), :, :] - eta_i_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
+                                            (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
+          else :
+              eta_i_map_new = eta_i_map
+      
+      # loading old variables
+      eta_i_map = eta_i_map_new.copy()
+      # updating phase map
+      eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+      # iteration on y
+      for i_y in range(len(dict_sample['y_L'])):
+          y = dict_sample['y_L'][i_y]
+          i_y_old = 0
+          # eta 1 
+          if displacement[1] < 0:
+              if y-displacement[1] <= dict_sample['y_L'][-1]:
+                  # look for window
+                  while not (dict_sample['y_L'][i_y_old] <= y-displacement[1] and y-displacement[1] <= dict_sample['y_L'][i_y_old+1]):
+                      i_y_old = i_y_old + 1
+                  # interpolate
+                  eta_i_map_new[:, i_y, :] = (eta_i_map[:, (i_y_old+1), :] - eta_i_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
+                                            (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
+          elif displacement[1] > 0:
+              if dict_sample['y_L'][0] <= y-displacement[1]:
+                  # look for window
+                  while not (dict_sample['y_L'][i_y_old] <= y-displacement[1] and y-displacement[1] <= dict_sample['y_L'][i_y_old+1]):
+                      i_y_old = i_y_old + 1
+                  # interpolate
+                  eta_i_map_new[:, i_y, :] = (eta_i_map[:, (i_y_old+1), :] - eta_i_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
+                                            (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
+          else :
+              eta_i_map_new = eta_i_map
 
-    # loading old variables
-    eta_2_map = eta_2_map_new.copy()
-    # updating phase map
-    eta_2_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-    # iteration on z
-    for i_z in range(len(dict_sample['z_L'])):
-        z = dict_sample['z_L'][i_z]
-        i_z_old = 0
-        # eta 1 
-        if displacement[2] < 0:
-            if z-displacement[2] <= dict_sample['z_L'][-1]:
-                # look for window
-                while not (dict_sample['z_L'][i_z_old] <= z-displacement[2] and z-displacement[2] <= dict_sample['z_L'][i_z_old+1]):
-                    i_z_old = i_z_old + 1
-                # interpolate
-                eta_2_map_new[:, :, i_z] = (eta_2_map[:, :, (i_z_old+1)] - eta_2_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
-                                           (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_2_map[:, :, i_z_old]
-        elif displacement[2] > 0:
-            if dict_sample['z_L'][0] <= z-displacement[2]:
-                # look for window
-                while not (dict_sample['z_L'][i_z_old] <= z-displacement[2] and z-displacement[2] <= dict_sample['z_L'][i_z_old+1]):
-                    i_z_old = i_z_old + 1
-                # interpolate
-                eta_2_map_new[:, :, i_z] = (eta_2_map[:, :, (i_z_old+1)] - eta_2_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
-                                           (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_2_map[:, :, i_z_old]
-        else :
-            eta_2_map_new = eta_2_map
+      # loading old variables
+      eta_i_map = eta_i_map_new.copy()
+      # updating phase map
+      eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+      # iteration on z
+      for i_z in range(len(dict_sample['z_L'])):
+          z = dict_sample['z_L'][i_z]
+          i_z_old = 0
+          # eta 1 
+          if displacement[2] < 0:
+              if z-displacement[2] <= dict_sample['z_L'][-1]:
+                  # look for window
+                  while not (dict_sample['z_L'][i_z_old] <= z-displacement[2] and z-displacement[2] <= dict_sample['z_L'][i_z_old+1]):
+                      i_z_old = i_z_old + 1
+                  # interpolate
+                  eta_i_map_new[:, :, i_z] = (eta_i_map[:, :, (i_z_old+1)] - eta_i_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
+                                            (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
+          elif displacement[2] > 0:
+              if dict_sample['z_L'][0] <= z-displacement[2]:
+                  # look for window
+                  while not (dict_sample['z_L'][i_z_old] <= z-displacement[2] and z-displacement[2] <= dict_sample['z_L'][i_z_old+1]):
+                      i_z_old = i_z_old + 1
+                  # interpolate
+                  eta_i_map_new[:, :, i_z] = (eta_i_map[:, :, (i_z_old+1)] - eta_i_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
+                                            (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
+          else :
+              eta_i_map_new = eta_i_map
 
-    # The solute map is updated
-    # the solute is push out/in of the grain
-    # this is done in compute_kc() from dem_to_pf.py called later
-
-    # update variables
-    dict_sample['eta_2_map'] = eta_2_map_new
+      # update variables
+      dict_sample['L_etai_map'][i_grain] = eta_i_map_new
 
 # -----------------------------------------------------------------------------#
 
@@ -130,75 +130,120 @@ def compute_contact(dict_user, dict_sample):
     - maximum surface
     - volume
   '''
-  # box initialization
-  x_box_min = None
-  x_box_max = None
-  y_box_min = None
-  y_box_max = None
-  z_box_min = None
-  z_box_max = None
-  # volume
-  vol_contact = 0
-  # surface 
-  surf_contact = 0
-
-  # iterate on mesh
-  for i_x in range(len(dict_sample['x_L'])):
-    for i_y in range(len(dict_sample['y_L'])):
-      # initialyze surface at this z
-      surf_contact_z = 0
-      for i_z in range(len(dict_sample['z_L'])):
-        # contact detection
-        if dict_sample['eta_1_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
-           dict_sample['eta_2_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
-          # compute box dimensions
-          if x_box_min == None:
-            x_box_min = dict_sample['x_L'][i_x]
-            x_box_max = dict_sample['x_L'][i_x]
-            y_box_min = dict_sample['y_L'][i_y]
-            y_box_max = dict_sample['y_L'][i_y]
-            z_box_min = dict_sample['z_L'][i_z]
-            z_box_max = dict_sample['z_L'][i_z]
-          else :
-            if dict_sample['x_L'][i_x] < x_box_min:
+  # load data
+  with open('data/dem_to_main.data', 'rb') as handle:
+      dict_save = pickle.load(handle)
+  L_contact = dict_save['L_contact']
+  # initialization
+  dict_sample['L_contact_box'] = []
+  dict_sample['L_vol_contact'] = []
+  dict_sample['L_surf_contact'] = []
+  # iterate on contacts
+  for contact in L_contact:                
+    # box initialization
+    x_box_min = None
+    x_box_max = None
+    y_box_min = None
+    y_box_max = None
+    z_box_min = None
+    z_box_max = None
+    # volume
+    vol_contact = 0
+    # surface 
+    surf_contact = 0
+    # iterate on mesh
+    for i_x in range(len(dict_sample['x_L'])):
+      for i_y in range(len(dict_sample['y_L'])):
+        # initialyze surface at this z
+        surf_contact_z = 0
+        for i_z in range(len(dict_sample['z_L'])):
+          # contact detection
+          if dict_sample['L_etai_map'][contact[0]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
+             dict_sample['L_etai_map'][contact[1]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
+            # compute box dimensions
+            if x_box_min == None:
               x_box_min = dict_sample['x_L'][i_x]
-            if x_box_max < dict_sample['x_L'][i_x]:
               x_box_max = dict_sample['x_L'][i_x]
-            if dict_sample['y_L'][i_y] < y_box_min:
               y_box_min = dict_sample['y_L'][i_y]
-            if y_box_max < dict_sample['y_L'][i_y]:
               y_box_max = dict_sample['y_L'][i_y]
-            if dict_sample['z_L'][i_z] < z_box_min:
               z_box_min = dict_sample['z_L'][i_z]
-            if z_box_max < dict_sample['z_L'][i_z]:
               z_box_max = dict_sample['z_L'][i_z]
-          # compute volume contact
-          vol_contact = vol_contact + (dict_sample['x_L'][1]-dict_sample['x_L'][0])*\
-                                      (dict_sample['y_L'][1]-dict_sample['y_L'][0])*\
-                                      (dict_sample['z_L'][1]-dict_sample['z_L'][0])
-          # compute surface at this z
-          surf_contact_z = surf_contact_z + (dict_sample['x_L'][1]-dict_sample['x_L'][0])*\
-                                            (dict_sample['y_L'][1]-dict_sample['y_L'][0])
-      # compare surface at this z with the maximum registered
-      if surf_contact < surf_contact_z:
-         surf_contact = surf_contact_z  
-  # if no contact detected
-  if x_box_min == None:
-    x_box_min = 0
-    x_box_max = 0
-    y_box_min = 0
-    y_box_max = 0
-    z_box_min = 0
-    z_box_max = 0
+            else :
+              if dict_sample['x_L'][i_x] < x_box_min:
+                x_box_min = dict_sample['x_L'][i_x]
+              if x_box_max < dict_sample['x_L'][i_x]:
+                x_box_max = dict_sample['x_L'][i_x]
+              if dict_sample['y_L'][i_y] < y_box_min:
+                y_box_min = dict_sample['y_L'][i_y]
+              if y_box_max < dict_sample['y_L'][i_y]:
+                y_box_max = dict_sample['y_L'][i_y]
+              if dict_sample['z_L'][i_z] < z_box_min:
+                z_box_min = dict_sample['z_L'][i_z]
+              if z_box_max < dict_sample['z_L'][i_z]:
+                z_box_max = dict_sample['z_L'][i_z]
+            # compute volume contact
+            vol_contact = vol_contact + (dict_sample['x_L'][1]-dict_sample['x_L'][0])*\
+                                        (dict_sample['y_L'][1]-dict_sample['y_L'][0])*\
+                                        (dict_sample['z_L'][1]-dict_sample['z_L'][0])
+            # compute surface at this z
+            surf_contact_z = surf_contact_z + (dict_sample['x_L'][1]-dict_sample['x_L'][0])*\
+                                              (dict_sample['y_L'][1]-dict_sample['y_L'][0])
+        # compare surface at this z with the maximum registered
+        if surf_contact < surf_contact_z:
+          surf_contact = surf_contact_z  
+    # if no contact detected
+    if x_box_min == None:
+      x_box_min = 0
+      x_box_max = 0
+      y_box_min = 0
+      y_box_max = 0
+      z_box_min = 0
+      z_box_max = 0
+    # save
+    dict_sample['L_contact_box'].append([x_box_min, x_box_max, y_box_min, y_box_max, z_box_min, z_box_max])
+    dict_sample['L_vol_contact'].append(vol_contact)
+    dict_sample['L_surf_contact'].append(surf_contact)
+
   # save
-  dict_sample['contact_box'] = [x_box_min, x_box_max, y_box_min, y_box_max, z_box_min, z_box_max]
-  dict_sample['vol_contact'] = vol_contact
-  dict_sample['surf_contact'] = surf_contact
-  dict_user['L_contact_box_x'].append(x_box_max-x_box_min)
-  dict_user['L_contact_box_y'].append(y_box_max-y_box_min)
-  dict_user['L_contact_box_z'].append(z_box_max-z_box_min)
-  dict_user['L_contact_volume'].append(vol_contact)
-  dict_user['L_contact_surface'].append(surf_contact)
+  # iterate on potential contact
+  ij = 0
+  for i_grain in range(len(dict_sample['L_etai_map'])-1):
+      for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
+          i_contact = 0
+          contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+          while not contact_found:
+              i_contact + 1
+              if i_contact == len(L_contact):
+                  break
+              else :
+                  contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+          if dict_sample['i_DEMPF_ite'] == 1:
+              if contact_found:
+                  dict_user['L_L_contact_box_x'].append([dict_sample['L_contact_box'][i_contact][1]-dict_sample['L_contact_box'][i_contact][0]])
+                  dict_user['L_L_contact_box_y'].append([dict_sample['L_contact_box'][i_contact][3]-dict_sample['L_contact_box'][i_contact][2]])
+                  dict_user['L_L_contact_box_z'].append([dict_sample['L_contact_box'][i_contact][5]-dict_sample['L_contact_box'][i_contact][4]])
+                  dict_user['L_L_contact_volume'].append([dict_sample['L_vol_contact'][i_contact]])
+                  dict_user['L_L_contact_surface'].append([dict_sample['L_surf_contact'][i_contact]])
+              else:
+                  dict_user['L_L_contact_box_x'].append([0])
+                  dict_user['L_L_contact_box_y'].append([0])
+                  dict_user['L_L_contact_box_z'].append([0])
+                  dict_user['L_L_contact_volume'].append([0])
+                  dict_user['L_L_contact_surface'].append([0])
+          else :
+              if contact_found:
+                  dict_user['L_L_contact_box_x'][ij].append(dict_sample['L_contact_box'][i_contact][1]-dict_sample['L_contact_box'][i_contact][0])
+                  dict_user['L_L_contact_box_y'][ij].append(dict_sample['L_contact_box'][i_contact][3]-dict_sample['L_contact_box'][i_contact][2])
+                  dict_user['L_L_contact_box_z'][ij].append(dict_sample['L_contact_box'][i_contact][5]-dict_sample['L_contact_box'][i_contact][4])
+                  dict_user['L_L_contact_volume'][ij].append(dict_sample['L_vol_contact'][i_contact])
+                  dict_user['L_L_contact_surface'][ij].append(dict_sample['L_surf_contact'][i_contact])
+              else:
+                  dict_user['L_L_contact_box_x'][ij].append(0)
+                  dict_user['L_L_contact_box_y'][ij].append(0)
+                  dict_user['L_L_contact_box_z'][ij].append(0)
+                  dict_user['L_L_contact_volume'][ij].append(0)
+                  dict_user['L_L_contact_surface'][ij].append(0)
+          ij = ij + 1
 
 # -----------------------------------------------------------------------------#
 
@@ -209,29 +254,62 @@ def compute_as(dict_user, dict_sample):
     # load data
     with open('data/dem_to_main.data', 'rb') as handle:
         dict_save = pickle.load(handle)
-    normal_force = dict_save['normal_force']
+    L_contact = dict_save['L_contact']
 
     # init
-    dict_sample['as_map'] = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-    
+    dict_sample['as_map'] = np.ones((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+    L_pressure_tempo = []
+    L_as_tempo = []
     # iterate on mesh
     for i_x in range(len(dict_sample['x_L'])):
         for i_y in range(len(dict_sample['y_L'])):
             for i_z in range(len(dict_sample['z_L'])):
-                # contact detection
-                if dict_sample['eta_1_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
-                   dict_sample['eta_2_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
-                    # determine pressure
-                    P = normal_force/dict_sample['surf_contact'] # Pa
-                else :
-                    # determine pressure
-                    P = 0 # Pa
-                # save in the map
-                dict_sample['as_map'][i_x, i_y, i_z] = math.exp(P*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature']))
+                p_saved = False
+                for i_contact in range(len(L_contact)):
+                  contact = L_contact[i_contact]
+                  # contact detection
+                  if dict_sample['L_etai_map'][contact[0]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
+                     dict_sample['L_etai_map'][contact[1]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
+                      # determine pressure
+                      P = contact[3][2]/dict_sample['L_surf_contact'][i_contact] # Pa
+                      # tempo save
+                      if not p_saved :
+                        L_pressure_tempo.append(P)
+                        L_as_tempo.append(math.exp(P*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature'])))
+                        p_saved = True
+                      # save in the map
+                      # do not erase data
+                      if dict_sample['as_map'][i_x, i_y, i_z] == 1:
+                          dict_sample['as_map'][i_x, i_y, i_z] = math.exp(P*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature']))
     # save
-    dict_user['L_contact_as'].append(math.exp(normal_force/dict_sample['surf_contact']*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature'])))
-    dict_user['L_contact_pressure'].append(normal_force/dict_sample['surf_contact'])
-
+    # iterate on potential contact
+    ij = 0
+    for i_grain in range(len(dict_sample['L_etai_map'])-1):
+        for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
+            i_contact = 0
+            contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            while not contact_found:
+                i_contact + 1
+                if i_contact == len(L_contact):
+                    break
+                else :
+                    contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            if dict_sample['i_DEMPF_ite'] == 1:
+                if contact_found:
+                    dict_user['L_L_contact_pressure'].append([L_pressure_tempo[i_contact]])
+                    dict_user['L_L_contact_as'].append([L_as_tempo[i_contact]])
+                else:
+                    dict_user['L_L_contact_pressure'].append([0])
+                    dict_user['L_L_contact_as'].append([1])
+            else :
+                if contact_found:
+                    dict_user['L_L_contact_pressure'][ij].append(L_pressure_tempo[i_contact])
+                    dict_user['L_L_contact_as'][ij].append(L_as_tempo[i_contact])
+                else:
+                    dict_user['L_L_contact_pressure'][ij].append(0)
+                    dict_user['L_L_contact_as'][ij].append(1)
+            ij = ij + 1
+            
     # plot 
     plot_as_pressure(dict_user, dict_sample) # from tools.py
 
@@ -254,12 +332,16 @@ def compute_kc(dict_user, dict_sample):
     for i_z in range(len(dict_sample['z_L'])):
         for i_y in range(len(dict_sample['y_L'])):
             for i_x in range(len(dict_sample['x_L'])):
-                if dict_sample['eta_1_map'][i_x, i_y, i_z] < dict_user['eta_contact_box_detection'] and\
-                   dict_sample['eta_2_map'][i_x, i_y, i_z] < dict_user['eta_contact_box_detection']: # out of the grain
+                # count the number of eta > eta_criterion
+                c_eta_crit = 0
+                for i_grain in range(len(dict_sample['L_etai_map'])):
+                   if dict_sample['L_etai_map'][i_grain][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
+                      c_eta_crit = c_eta_crit + 1
+                # compute coefficient of diffusion
+                if c_eta_crit == 0: # out of the grain
                     kc_map[i_x, i_y, i_z] = True
                     kc_pore_map[i_x, i_y, i_z] = True
-                elif dict_sample['eta_1_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
-                     dict_sample['eta_2_map'][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']: # in the contact
+                elif c_eta_crit >= 2: # in the contact
                     kc_map[i_x, i_y, i_z] = True
                     kc_pore_map[i_x, i_y, i_z] = False
                 else : # in the grain
@@ -301,6 +383,9 @@ def compute_kc(dict_user, dict_sample):
             for i_x in range(len(dict_sample['x_L'])):
                 if not dilated_M[i_x, i_y, i_z]: 
                     c_map_new[i_x, i_y, i_z] = dict_user['C_eq']
+    
+    # HERE MUST BE MODIFIED
+    # Move the solute to connserve the mass
                     
     # save data
     dict_sample['c_map'] = c_map_new
@@ -381,19 +466,97 @@ def write_i(dict_user, dict_sample):
       line = line[:-1] + ' ' + str(min(dict_sample['z_L']))+'\n'
     elif j == 12:
       line = line[:-1] + ' ' + str(max(dict_sample['z_L']))+'\n'
-    elif j == 88 or j==94:
-      line = line[:-1] + ' ' + str(1/dict_user['V_m'])+'\n'
-    elif j == 108:
+    elif j == 17:
+      line = ''
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line + '\t[./eta'+str(i_grain+1)+']\n'+\
+                      '\t\torder = FIRST\n'+\
+                      '\t\tfamily = LAGRANGE\n'+\
+                      '\t\t[./InitialCondition]\n'+\
+                      '\t\t\ttype = FunctionIC\n'+\
+                      '\t\t\tfunction = eta'+str(i_grain+1)+'_txt\n'+\
+                      '\t\t[../]\n'+\
+                      '\t[../]\n'
+    elif j == 27:
+      line = ''
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line + '\t# Order parameter eta'+str(i_grain+1)+'\n'+\
+                      '\t[./deta'+str(i_grain+1)+'dt]\n'+\
+                      '\t\ttype = TimeDerivative\n'+\
+                      '\t\tvariable = eta'+str(i_grain+1)+'\n'+\
+                      '\t[../]\n'+\
+                      '\t[./ACBulk'+str(i_grain+1)+']\n'+\
+                      '\t\ttype = AllenCahn\n'+\
+                      '\t\tvariable = eta'+str(i_grain+1)+'\n'+\
+                      '\t\tmob_name = L\n'+\
+                      '\t\tf_name = F_total\n'+\
+                      '\t[../]\n'+\
+                      '\t[./ACInterface'+str(i_grain+1)+']\n'+\
+                      '\t\ttype = ACInterface\n'+\
+                      '\t\tvariable = eta'+str(i_grain+1)+'\n'+\
+                      '\t\tmob_name = L\n'+\
+                      "\t\tkappa_name = 'kappa_eta'\n"+\
+                      '\t[../]\n'
+    elif j == 33:
+      line = ''
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line + '\t[./eta'+str(i_grain+1)+'_c]\n'+\
+                      '\t\ttype = CoefCoupledTimeDerivative\n'+\
+                      "\t\tv = 'eta"+str(i_grain+1)+"'\n"+\
+                      '\t\tvariable = c\n'+\
+                      '\t\tcoef = '+str(1/dict_user['V_m'])+'\n'+\
+                      '\t[../]\n'    
+    elif j == 46:
       line = line[:-1] + "'"+str(dict_user['Mobility_eff'])+' '+str(dict_user['kappa_eta'])+" 1'\n"
-    elif j == 130:
-      line = line[:-1] + ' ' + str(dict_user['Energy_barrier'])+"'\n"
-    elif j == 143:
+    elif j == 66:
+      line = line[:-1] + "'"
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line +'eta'+str(i_grain+1)+' '
+      line = line[:-1] + "'\n"
+    elif j == 68:
+      line = line[:-1] + "'" + str(dict_user['Energy_barrier'])+"'\n"
+    elif j == 69:
+      line = line[:-1] + "'"
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line +'h*(eta'+str(i_grain+1)+'^2*(1-eta'+str(i_grain+1)+')^2)+'
+      line = line[:-1] + "'\n"
+    elif j == 78:
+      line = line[:-1] + "'"
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line +'eta'+str(i_grain+1)+' '
+      line = line + "c'\n"
+    elif j == 81:
       line = line[:-1] + "'" + str(dict_user['C_eq']) + ' ' + str(dict_user['k_diss']) + ' ' + str(dict_user['k_prec']) + "'\n"
-    elif j == 204 or j == 205 or j == 207 or j == 208:
+    elif j == 82:
+      line = line[:-1] + "'if(c<c_eq*as,k_diss,k_prec)*as*(1-c/(c_eq*as))*("
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line +'3*eta'+str(i_grain+1)+'^2-2*eta'+str(i_grain+1)+'^3+'
+      line = line[:-1] +")'\n"
+    elif j == 91:
+      line = line[:-1] + "'"
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line +'eta'+str(i_grain+1)+' '
+      line = line + "c'\n"
+    elif j == 92:
+      line = line[:-1] + "'F("
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line +'eta'+str(i_grain+1)+','
+      line = line[:-1] + ") Ed("
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line +'eta'+str(i_grain+1)+','
+      line = line + "c)'\n"
+    elif j == 101:
+      line = ''
+      for i_grain in range(len(dict_sample['L_etai_map'])):
+        line = line + '\t[eta'+str(i_grain+1)+'_txt]\n'+\
+                      '\t\ttype = PiecewiseMultilinear\n'+\
+                      "\t\tdata_file = data/eta_"+str(i_grain+1)+".txt\n"+\
+                      '\t[]\n'   
+    elif j == 135 or j == 136 or j == 138 or j == 139:
       line = line[:-1] + ' ' + str(dict_user['crit_res']) +'\n'
-    elif j == 211:
+    elif j == 142:
       line = line[:-1] + ' ' + str(dict_user['dt_PF']*dict_user['n_t_PF']) +'\n'
-    elif j == 215:
+    elif j == 146:
       line = line[:-1] + ' ' + str(dict_user['dt_PF']) +'\n'
     file_to_write.write(line)
 

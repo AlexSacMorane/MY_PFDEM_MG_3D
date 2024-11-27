@@ -14,22 +14,7 @@
 []
 
 [Variables]
-  [./eta1]
-    order = FIRST
-    family = LAGRANGE
-    [./InitialCondition]
-      type = FunctionIC
-      function = eta1_txt
-    [../]
-  [../]
-  [./eta2]
-    order = FIRST
-    family = LAGRANGE
-    [./InitialCondition]
-      type = FunctionIC
-      function = eta2_txt
-    [../]
-  [../]
+
   [./c]
     [./InitialCondition]
       type = FunctionIC
@@ -40,59 +25,12 @@
 
 [Kernels]
 
-  # Order parameter eta1
-  [./deta1dt]
-    type = TimeDerivative
-    variable = eta1
-  [../]
-  [./ACBulk1]
-    type = AllenCahn
-    variable = eta1
-    mob_name = L
-    f_name = F_total
-  [../]
-  [./ACInterface1]
-    type = ACInterface
-    variable = eta1
-    mob_name = L
-    kappa_name = 'kappa_eta'
-  [../]
-
-  # Order parameter eta2
-  [./deta2dt]
-    type = TimeDerivative
-    variable = eta2
-  [../]
-  [./ACBulk2]
-    type = AllenCahn
-    variable = eta2
-    mob_name = L
-    f_name = F_total
-  [../]
-  [./ACInterface2]
-    type = ACInterface
-    variable = eta2
-    mob_name = L
-    kappa_name = 'kappa_eta'
-  [../]
-
   # Order parameter c
   [./dcdt]
     type = TimeDerivative
     variable = c
   [../]
-  [./eta1_c]
-    type = CoefCoupledTimeDerivative
-    v = 'eta1'
-    variable = c
-    coef = 
-  [../]
-  [./eta2_c]
-    type = CoefCoupledTimeDerivative
-    v = 'eta2'
-    variable = c
-    coef = 
-  [../]
+
   [./c_diffusion]
     type = ACInterface
     kappa_name = kc
@@ -125,10 +63,10 @@
     type = DerivativeParsedMaterial
     block = 0
     property_name = F
-    coupled_variables = 'eta1 eta2'
+    coupled_variables = 
     constant_names = 'h'
-    constant_expressions = '
-    expression = 'h*(eta1^2*(1-eta1)^2) + h*(eta2^2*(1-eta2)^2)'
+    constant_expressions = 
+    expression = 
     enable_jit = true
     derivative_order = 2
     # outputs = exodus
@@ -137,11 +75,11 @@
   type = DerivativeParsedMaterial
     block = 0
     property_name = Ed
-    coupled_variables = 'eta1 eta2 c'
+    coupled_variables = 
     material_property_names = 'as'
     constant_names = 'c_eq k_diss k_prec'
     constant_expressions =
-    expression = 'if(c<c_eq*as,k_diss*as*(1-c/(c_eq*as))*(3*eta1^2-2*eta1^3+3*eta2^2-2*eta2^3),k_prec*as*(1-c/(c_eq*as))*(3*eta1^2-2*eta1^3+3*eta2^2-2*eta2^3))'
+    expression = 
     enable_jit = true
     derivative_order = 2
     # outputs = exodus
@@ -150,8 +88,8 @@
     type = DerivativeParsedMaterial
     block = 0
     property_name = F_total
-    coupled_variables = 'eta1 c'
-    material_property_names = 'F(eta1,eta2) Ed(eta1,eta2,c)'
+    coupled_variables = 
+    material_property_names = 
     expression = 'F+Ed'
     enable_jit = true
     derivative_order = 2
@@ -160,14 +98,7 @@
 []
 
 [Functions]
-  [eta1_txt]
-    type = PiecewiseMultilinear
-    data_file = data/eta_1.txt
-  []
-  [eta2_txt]
-    type = PiecewiseMultilinear
-    data_file = data/eta_2.txt
-  []
+
   [c_txt]
     type = PiecewiseMultilinear
     data_file = data/c.txt

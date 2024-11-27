@@ -51,9 +51,10 @@ def reduce_n_vtk_files(dict_user, dict_sample):
                 \t<PUnstructuredGrid GhostLevel="1">
                 \t\t<PPointData>
                 \t\t\t<PDataArray type="Float64" Name="as"/>
-                \t\t\t<PDataArray type="Float64" Name="kc"/>
-                \t\t\t<PDataArray type="Float64" Name="eta1"/>
-                \t\t\t<PDataArray type="Float64" Name="c"/>
+                \t\t\t<PDataArray type="Float64" Name="kc"/>''')
+                for i_grain in range(len(dict_sample['L_etai_map'])):
+                    file.write('''\t\t\t<PDataArray type="Float64" Name="eta'''+str(i_grain+1)+'''"/>''')
+                file.write('''\t\t\t<PDataArray type="Float64" Name="c"/>
                 \t\t</PPointData>
                 \t\t<PCellData>
                 \t\t\t<PDataArray type="Int32" Name="libmesh_elem_id"/>
@@ -92,30 +93,6 @@ def reduce_n_vtk_files(dict_user, dict_sample):
             j = j + 1
             j_str = index_to_str(j)
             filepath = Path('vtk/pf_other_'+j_str+'.pvtu')
-
-        # DEM files
-
-        # compute the frequency
-        if 2*dict_user['n_DEMPF_ite']-1 > dict_user['n_max_vtk_files']:
-            f_save = (2*dict_user['n_DEMPF_ite']-1)/(dict_user['n_max_vtk_files']-1)
-        else :
-            f_save = 1
-        # post proccess index
-        i_save = 0
-
-        # iterate on time 
-        for iteration in range(2*dict_user['n_DEMPF_ite']):
-            iteration_str = str(iteration) # from pf_to_dem.py 
-            if iteration >= f_save*i_save:
-                i_save_str = str(i_save) # from pf_to_dem.py
-                os.rename('vtk/2grains_'+iteration_str+'.vtk', 'vtk/2grains_'+i_save_str+'.vtk')
-                os.rename('vtk/grain1_'+iteration_str+'.vtk', 'vtk/grain1_'+i_save_str+'.vtk')
-                os.rename('vtk/grain2_'+iteration_str+'.vtk', 'vtk/grain2_'+i_save_str+'.vtk')
-                i_save = i_save + 1
-            else :
-                os.remove('vtk/2grains_'+iteration_str+'.vtk')
-                os.remove('vtk/grain1_'+iteration_str+'.vtk')
-                os.remove('vtk/grain2_'+iteration_str+'.vtk')
 
 #------------------------------------------------------------------------------------------------------------------------------------------ #
 
@@ -198,22 +175,37 @@ def plot_sum_mean_etai_c(dict_user, dict_sample):
     Plot figure illustrating the sum and the mean of etai and c.
     '''
     # compute tracker
-    dict_user['L_sum_eta_1'].append(np.sum(dict_sample['eta_1_map']))
-    dict_user['L_sum_eta_2'].append(np.sum(dict_sample['eta_2_map']))
+    # sum
+    s_eta_i = 0
+    if dict_user['L_L_sum_eta_i'] == []:
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            dict_user['L_L_sum_eta_i'].append([np.sum(dict_sample['L_etai_map'][i_grain])])
+            s_eta_i = s_eta_i + np.sum(dict_sample['L_etai_map'][i_grain])
+    else :
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            dict_user['L_L_sum_eta_i'][i_grain].append(np.sum(dict_sample['L_etai_map'][i_grain]))
+            s_eta_i = s_eta_i + np.sum(dict_sample['L_etai_map'][i_grain])
     dict_user['L_sum_c'].append(np.sum(dict_sample['c_map']))
-    dict_user['L_sum_mass'].append(1/dict_user['V_m']*np.sum(dict_sample['eta_1_map'])+1/dict_user['V_m']*np.sum(dict_sample['eta_2_map'])+np.sum(dict_sample['c_map']))
-    dict_user['L_m_eta_1'].append(np.mean(dict_sample['eta_1_map']))
-    dict_user['L_m_eta_2'].append(np.mean(dict_sample['eta_2_map']))
+    dict_user['L_sum_mass'].append(1/dict_user['V_m']*s_eta_i+np.sum(dict_sample['c_map']))
+    # mean
+    m_eta_i = 0
+    if dict_user['L_L_m_eta_i'] == []:
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            dict_user['L_L_m_eta_i'].append([np.mean(dict_sample['L_etai_map'][i_grain])])
+            m_eta_i = m_eta_i + np.mean(dict_sample['L_etai_map'][i_grain])
+    else :
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            dict_user['L_L_m_eta_i'][i_grain].append(np.mean(dict_sample['L_etai_map'][i_grain]))
+            m_eta_i = m_eta_i + np.mean(dict_sample['L_etai_map'][i_grain])
     dict_user['L_m_c'].append(np.mean(dict_sample['c_map']))
-    dict_user['L_m_mass'].append(1/dict_user['V_m']*np.mean(dict_sample['eta_1_map'])+1/dict_user['V_m']*np.mean(dict_sample['eta_2_map'])+np.mean(dict_sample['c_map']))
+    dict_user['L_m_mass'].append(1/dict_user['V_m']*m_eta_i+np.mean(dict_sample['c_map']))
 
     # plot sum eta_i, c
     if 'sum_etai_c' in dict_user['L_figures']:
         fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(nrows=2,ncols=2,figsize=(16,9))
-        ax1.plot(dict_user['L_sum_eta_1'])
-        ax1.set_title(r'$\Sigma\eta_1$')
-        ax2.plot(dict_user['L_sum_eta_2'])
-        ax2.set_title(r'$\Sigma\eta_2$')
+        for i_grain in range(len(dict_sample['L_L_sum_eta_i'])):
+            ax1.plot(dict_user['L_L_sum_eta_i'][i_grain])
+        ax1.set_title(r'$\Sigma\eta_i$')
         ax3.plot(dict_user['L_sum_c'])
         ax3.set_title(r'$\Sigma C$')
         ax4.plot(dict_user['L_sum_mass'])
@@ -225,10 +217,9 @@ def plot_sum_mean_etai_c(dict_user, dict_sample):
     # plot mean eta_i, c
     if 'mean_etai_c' in dict_user['L_figures']:
         fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(nrows=2,ncols=2,figsize=(16,9))
-        ax1.plot(dict_user['L_m_eta_1'])
-        ax1.set_title(r'Mean $\eta_1$')
-        ax2.plot(dict_user['L_m_eta_2'])
-        ax2.set_title(r'Mean $\eta_2$')
+        for i_grain in range(len(dict_user['L_L_m_eta_i'])):
+            ax1.plot(dict_user['L_L_m_eta_i'][i_grain])
+        ax1.set_title(r'Mean $\eta_i$')
         ax3.plot(dict_user['L_m_c'])
         ax3.set_title(r'Mean $c$')
         ax4.plot(dict_user['L_m_mass'])
@@ -246,11 +237,15 @@ def compute_mass(dict_user, dict_sample):
     Mass is sum of etai and c.
     '''
     # sum of masses
-    dict_user['sum_eta_1_tempo'] = np.sum(dict_sample['eta_1_map'])
-    dict_user['sum_eta_2_tempo'] = np.sum(dict_sample['eta_2_map'])
+    L_sum_eta_i_tempo = []
+    s_eta_i = 0
+    for i_grain in range(len(dict_sample['L_etai_map'])):
+        L_sum_eta_i_tempo.append([np.sum(dict_sample['L_etai_map'][i_grain])])
+        s_eta_i = s_eta_i + np.sum(dict_sample['L_etai_map'][i_grain])
+    dict_user['L_sum_eta_i_tempo'] = L_sum_eta_i_tempo
     dict_user['sum_c_tempo'] = np.sum(dict_sample['c_map'])
-    dict_user['sum_mass_tempo'] = 1/dict_user['V_m']*np.sum(dict_sample['eta_1_map'])+1/dict_user['V_m']*np.sum(dict_sample['eta_2_map'])+np.sum(dict_sample['c_map'])
-    
+    dict_user['sum_mass_tempo'] = 1/dict_user['V_m']*s_eta_i+np.sum(dict_sample['c_map'])
+
 #------------------------------------------------------------------------------------------------------------------------------------------ #
 
 def compute_mass_loss(dict_user, dict_sample, tracker_key):
@@ -261,28 +256,36 @@ def compute_mass_loss(dict_user, dict_sample, tracker_key):
     Mass is sum of etai and c.
     '''
     # delta masses
-    deta1 = np.sum(dict_sample['eta_1_map']) - dict_user['sum_eta_1_tempo']
-    deta2 = np.sum(dict_sample['eta_2_map']) - dict_user['sum_eta_2_tempo']
+    if dict_user['L_'+tracker_key+'_eta_i'] == []:
+        s_eta_i = 0
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            detai = np.sum(dict_sample['L_etai_map'][i_grain]) - dict_user['L_sum_eta_i_tempo'][i_grain]
+            s_eta_i = s_eta_i + np.sum(dict_sample['L_etai_map'][i_grain])
+            # save
+            dict_user['L_'+tracker_key+'_eta_i'].append([detai])
+    else : 
+        s_eta_i = 0
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            detai = np.sum(dict_sample['L_etai_map'][i_grain]) - dict_user['L_sum_eta_i_tempo'][i_grain]
+            s_eta_i = s_eta_i + np.sum(dict_sample['L_etai_map'][i_grain])
+            # save
+            dict_user['L_'+tracker_key+'_eta_i'][i_grain].append(detai)
     dc = np.sum(dict_sample['c_map']) - dict_user['sum_c_tempo']
-    dm = 1/dict_user['V_m']*np.sum(dict_sample['eta_1_map'])+1/dict_user['V_m']*np.sum(dict_sample['eta_2_map'])+np.sum(dict_sample['c_map']) - dict_user['sum_mass_tempo']
-    
+    dm = 1/dict_user['V_m']*s_eta_i+np.sum(dict_sample['c_map']) - dict_user['sum_mass_tempo']
     # save
-    dict_user[tracker_key+'_eta1'].append(deta1)
-    dict_user[tracker_key+'_eta2'].append(deta2)
     dict_user[tracker_key+'_c'].append(dc)
     dict_user[tracker_key+'_m'].append(dm)
 
     # plot
     if 'mass_loss' in dict_user['L_figures']:
         fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(nrows=2,ncols=2,figsize=(16,9))
-        ax1.plot(dict_user[tracker_key+'_eta1'])
-        ax1.set_title(r'$\eta_1$ loss')
-        ax2.plot(dict_user[tracker_key+'_eta2'])
-        ax2.set_title(r'$\eta_2$ loss')
+        for i_grain in range(len(dict_sample['L_'+tracker_key+'_eta_i'])):
+            ax1.plot(dict_user['L_'+tracker_key+'_eta_i'][i_grain])
+        ax1.set_title(r'$\eta_i$ loss')
         ax3.plot(dict_user[tracker_key+'_c'])
         ax3.set_title(r'$c$ loss')
         ax4.plot(dict_user[tracker_key+'_m'])
-        ax4.set_title(r'$\eta_1$ + $c$ loss')
+        ax4.set_title(r'mass loss')
         fig.tight_layout()
         fig.savefig('plot/'+tracker_key+'.png')
         plt.close(fig)
@@ -313,6 +316,8 @@ def plot_dem(dict_user, dict_sample):
     '''
     Plot figure illustrating the overlap and force transmitted.
     '''
+    # Need to be adapted to multiple contacts  
+
     if 'overlap' in dict_user['L_figures']:
         fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
         ax1.plot(dict_user['L_overlap'])
@@ -339,20 +344,26 @@ def plot_contact(dict_user, dict_sample):
     '''
     Plot figure illustrating the contact characteristics.
     '''
+    # Need to be adapted to multiple contacts
+
     if 'contact_box' in dict_user['L_figures']:
-        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
-        ax1.plot(dict_user['L_contact_box_x'], label='x')
-        ax1.plot(dict_user['L_contact_box_y'], label='y')
-        ax1.plot(dict_user['L_contact_box_z'], label='z')
-        ax1.legend()
-        ax1.set_xlabel('iterations (-)')
+        fig, (ax1,ax2,ax3) = plt.subplots(nrows=1,ncols=3,figsize=(16,9))
+        for i_contact in range(len(dict_user['L_L_contact_box_x'])):
+            ax1.plot(dict_user['L_L_contact_box_x'][i_contact])
+            ax2.plot(dict_user['L_L_contact_box_y'][i_contact])
+            ax3.plot(dict_user['L_L_contact_box_z'][i_contact])
+        ax1.set_suptitle('x')
+        ax2.set_suptitle('y')
+        ax3.set_suptitle('z')
         ax1.set_ylabel('contact box dimensions (-)')
+        ax2.set_xlabel('iterations (-)')
         fig.tight_layout()
         fig.savefig('plot/contact_box.png')
         plt.close(fig)
     if 'contact_volume' in dict_user['L_figures']:
         fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
-        ax1.plot(dict_user['L_contact_volume'])
+        for i_contact in range(len(dict_user['L_L_contact_volume'])):
+            ax1.plot(dict_user['L_L_contact_volume'][i_contact])
         ax1.set_xlabel('iterations (-)')
         ax1.set_ylabel('contact volume (-)')
         fig.tight_layout()
@@ -360,7 +371,8 @@ def plot_contact(dict_user, dict_sample):
         plt.close(fig)
     if 'contact_surface' in dict_user['L_figures']:
         fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
-        ax1.plot(dict_user['L_contact_surface'], label='DEM')
+        for i_contact in range(len(dict_user['L_L_contact_surface'])):
+            ax1.plot(dict_user['L_L_contact_surface'][i_contact])
         ax1.set_xlabel('iterations (-)')
         ax1.set_ylabel('contact surface (-)')
         fig.tight_layout()
@@ -375,7 +387,8 @@ def plot_as_pressure(dict_user, dict_sample):
     '''
     if 'as' in dict_user['L_figures']:
         fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
-        ax1.plot(dict_user['L_contact_as'])
+        for i_contact in range(len(dict_user['L_L_contact_as'])):
+            ax1.plot(dict_user['L_L_contact_as'][i_contact])
         ax1.set_xlabel('iterations (-)')
         ax1.set_ylabel('solid activity (-)')
         fig.tight_layout()
@@ -383,7 +396,8 @@ def plot_as_pressure(dict_user, dict_sample):
         plt.close(fig)
     if 'pressure' in dict_user['L_figures']:
         fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
-        ax1.plot(dict_user['L_contact_pressure'])
+        for i_contact in range(len(dict_user['L_L_contact_pressure'])):
+            ax1.plot(dict_user['L_L_contact_pressure'][i_contact])
         ax1.set_xlabel('iterations (-)')
         ax1.set_ylabel('solid pressure (-)')
         fig.tight_layout()
@@ -402,43 +416,25 @@ def plot_slices(dict_user, dict_sample):
     i_z_slice = int(len(dict_sample['z_L'])/2)
 
     if 'configuration_eta' in dict_user['L_figures'] :
-        # plot
-        fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3,figsize=(16,9))
-        # y-z
-        im = ax1.imshow(dict_sample['eta_1_map'][i_x_slice,:,:], interpolation = 'nearest')
-        fig.colorbar(im, ax=ax1)
-        ax1.set_title(r'slice y-z',fontsize = 30)
-        # x-z
-        im = ax2.imshow(dict_sample['eta_1_map'][:,i_y_slice,:], interpolation = 'nearest')
-        fig.colorbar(im, ax=ax2)
-        ax2.set_title(r'slice x-z',fontsize = 30)
-        # x-y
-        im = ax3.imshow(dict_sample['eta_1_map'][:,:,i_z_slice], interpolation = 'nearest')
-        fig.colorbar(im, ax=ax3)
-        ax3.set_title(r'slice x-y',fontsize = 30)
-        # close
-        fig.tight_layout()
-        fig.savefig('plot/configuration/eta1_'+str(dict_sample['i_DEMPF_ite'])+'.png')
-        plt.close(fig)
-        
-        # plot
-        fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3,figsize=(16,9))
-        # y-z
-        im = ax1.imshow(dict_sample['eta_2_map'][i_x_slice,:,:], interpolation = 'nearest')
-        fig.colorbar(im, ax=ax1)
-        ax1.set_title(r'slice y-z',fontsize = 30)
-        # x-z
-        im = ax2.imshow(dict_sample['eta_2_map'][:,i_y_slice,:], interpolation = 'nearest')
-        fig.colorbar(im, ax=ax2)
-        ax2.set_title(r'slice x-z',fontsize = 30)
-        # x-y
-        im = ax3.imshow(dict_sample['eta_2_map'][:,:,i_z_slice], interpolation = 'nearest')
-        fig.colorbar(im, ax=ax3)
-        ax3.set_title(r'slice x-y',fontsize = 30)
-        # close
-        fig.tight_layout()
-        fig.savefig('plot/configuration/eta2_'+str(dict_sample['i_DEMPF_ite'])+'.png')
-        plt.close(fig)
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            # plot
+            fig, (ax1, ax2, ax3) = plt.subplots(nrows=1,ncols=3,figsize=(16,9))
+            # y-z
+            im = ax1.imshow(dict_sample['L_etai_map'][i_grain][i_x_slice,:,:], interpolation = 'nearest')
+            fig.colorbar(im, ax=ax1)
+            ax1.set_title(r'slice y-z',fontsize = 30)
+            # x-z
+            im = ax2.imshow(dict_sample['L_etai_map'][i_grain][:,i_y_slice,:], interpolation = 'nearest')
+            fig.colorbar(im, ax=ax2)
+            ax2.set_title(r'slice x-z',fontsize = 30)
+            # x-y
+            im = ax3.imshow(dict_sample['L_etai_map'][i_grain][:,:,i_z_slice], interpolation = 'nearest')
+            fig.colorbar(im, ax=ax3)
+            ax3.set_title(r'slice x-y',fontsize = 30)
+            # close
+            fig.tight_layout()
+            fig.savefig('plot/configuration/eta_'+str(i_grain+1)+'_'+str(dict_sample['i_DEMPF_ite'])+'.png')
+            plt.close(fig)
 
     if 'configuration_c' in dict_user['L_figures']:
         # plot
@@ -468,11 +464,11 @@ def plot_displacement(dict_user, dict_sample):
     '''
     # pp data
     L_strain = []
-    for i_displacement in range(len(dict_user['L_displacement'])):
+    for i_displacement in range(len(dict_user['L_L_displacement'][0])):
         if i_displacement == 0:
-            L_displacement_cum = [dict_user['L_displacement'][i_displacement][2]]
+            L_displacement_cum = [dict_user['L_L_displacement'][0][i_displacement][2]]
         else : 
-            L_displacement_cum.append(L_displacement_cum[-1]+dict_user['L_displacement'][i_displacement][2])
+            L_displacement_cum.append(L_displacement_cum[-1]+dict_user['L_L_displacement'][0][i_displacement][2])
         L_strain.append(L_displacement_cum[-1]/(2*dict_user['radius']))
     # plot
     fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
