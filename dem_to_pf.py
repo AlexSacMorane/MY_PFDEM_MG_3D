@@ -33,6 +33,8 @@ def move_phasefield(dict_user, dict_sample):
     for i_grain in range(1, len(dict_sample['L_etai_map'])):
       # read displacement
       displacement = L_displacement[i_grain] 
+      # print
+      print('grain', i_grain, ':', displacement)
 
       # loading old variables
       eta_i_map = dict_sample['L_etai_map'][i_grain]
@@ -211,12 +213,9 @@ def compute_contact(dict_user, dict_sample):
       for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
           i_contact = 0
           contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-          while not contact_found:
-              i_contact + 1
-              if i_contact == len(L_contact):
-                  break
-              else :
-                  contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+          while not contact_found and i_contact < len(L_contact)-1:
+                i_contact = i_contact + 1
+                contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
           if dict_sample['i_DEMPF_ite'] == 1:
               if contact_found:
                   dict_user['L_L_contact_box_x'].append([dict_sample['L_contact_box'][i_contact][1]-dict_sample['L_contact_box'][i_contact][0]])
@@ -288,12 +287,9 @@ def compute_as(dict_user, dict_sample):
         for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
             i_contact = 0
             contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-            while not contact_found:
-                i_contact + 1
-                if i_contact == len(L_contact):
-                    break
-                else :
-                    contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            while not contact_found and i_contact < len(L_contact)-1:
+                i_contact = i_contact + 1
+                contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
             if dict_sample['i_DEMPF_ite'] == 1:
                 if contact_found:
                     dict_user['L_L_contact_pressure'].append([L_pressure_tempo[i_contact]])

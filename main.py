@@ -115,7 +115,9 @@ def run_yade(dict_user, dict_sample):
     'steady_state_detection': dict_user['steady_state_detection'],
     'print_all_dem': 'all_dem' in dict_user['L_figures'],
     'print_dem': 'dem' in dict_user['L_figures'],
-    'print_vtk': 'yade_vtk' in dict_user['L_figures']
+    'print_vtk': 'yade_vtk' in dict_user['L_figures'],
+    'L_id_fixed': dict_user['L_id_fixed'],
+    'L_id_applied': dict_user['L_id_applied']
     }
     with open('data/main_to_dem.data', 'wb') as handle:
         pickle.dump(dict_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -149,12 +151,9 @@ def run_yade(dict_user, dict_sample):
         for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
             i_contact = 0
             contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-            while not contact_found:
-                i_contact + 1
-                if i_contact == len(L_contact):
-                    break
-                else :
-                    contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            while not contact_found and i_contact < len(L_contact)-1:
+                i_contact = i_contact + 1
+                contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
             if dict_sample['i_DEMPF_ite'] == 1:
                 if contact_found:
                     dict_user['L_L_overlap'].append([L_contact[i_contact][2]])

@@ -37,7 +37,7 @@ def create_grains():
                         distField=L_sdf_i_map[i_grain].tolist(),
                         material=0)
         )
-        if i_grain == 0: 
+        if i_grain == L_id_fixed: 
             O.bodies[-1].state.blockedDOFs = 'xyzXYZ'
         else :
             O.bodies[-1].state.blockedDOFs = 'XYZ'
@@ -57,8 +57,7 @@ def create_plots():
     '''
     Create plots during the DEM step.
     '''
-    #plot.plots = {'iteration': ('overlap', None, 'volume'),'iteration ':('normal_force','force_applied')}
-    plot.plots = {'iteration': ('overlap'),'iteration ':('normal_force','force_applied')}
+    plot.plots = {'iteration': ('unbalForce')}
 
 # -----------------------------------------------------------------------------#
 
@@ -109,7 +108,8 @@ def applied_force():
     '''
     Apply a constant force on the top grain.
     '''
-    O.forces.addF(1, (0, 0, -force_applied))
+    for id_applied in L_id_applied:
+        O.forces.addF(id_applied, (0, 0, -force_applied))
 
 # -----------------------------------------------------------------------------#
 
@@ -136,26 +136,10 @@ def add_data():
     '''
     Add data to plot :
         - iteration
-        - distance overlap between the two particles (>0 if overlap)
-        - force transmitted between the two particles (>0 if overlap)
-        #- volume overlap between the two particles (>0 if overlap)
+        - unbalannced force (mean resultant forces / mean contact force)
     '''
-    if O.interactions.has(0,1) : # check if interaction exists
-        if O.interactions[0,1].isReal: # check if interaction is real
-            overlap = O.interactions[0,1].geom.penetrationDepth
-            normal_force = O.interactions[0,1].phys.normalForce[2]
-            #volume = O.interactions[0,1].geom.penetrationVolume
-        else :
-            overlap = 0
-            normal_force = 0
-            #volume = 0
-    else :
-        overlap = 0
-        normal_force = 0
-        #volume = 0
-    plot.addData(iteration=O.iter, overlap=overlap, normal_force=normal_force, force_applied=force_applied)
-    #plot.addData(iteration=O.iter, overlap=overlap, volume=volume, normal_force=normal_force, force_applied=force_applied)
-
+    plot.addData(iteration=O.iter, unbalForce=UnbalancedForce())
+    
 # -----------------------------------------------------------------------------#
 # Load data
 # -----------------------------------------------------------------------------#
@@ -177,6 +161,8 @@ steady_state_detection = dict_save['steady_state_detection']
 print_all_dem = dict_save['print_all_dem']
 print_dem = dict_save['print_dem']
 print_vtk = dict_save['print_vtk']
+L_id_fixed = dict_save['L_id_fixed']
+L_id_applied = dict_save['L_id_applied']
 density = 2000
 
 # from plane interpolation

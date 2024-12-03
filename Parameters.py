@@ -33,7 +33,7 @@ def get_parameters():
     # contact_box, contact_volume, contact_surface, as, pressure
     # displacement
     L_figures = ['mean_etai_c',\
-                 'overlap', \
+                 'overlap', 'all_dem',\
                  'contact_volume', 'contact_surface', 'as',\
                  'displacement']
 
@@ -145,6 +145,11 @@ def get_parameters():
 
     L_pos_g = [[0, 0, -0.98*radius],
                [0, 0,  0.98*radius]]
+    
+    # list of grain ids fixed
+    L_id_fixed = [0]
+    # list of grain ids to apply force
+    L_id_applied = [1]
 
     #---------------------------------------------------------------------#
     # trackers
@@ -224,6 +229,8 @@ def get_parameters():
     'eta_contact_box_detection': eta_contact_box_detection,
     'L_pos_g': L_pos_g,
     'L_pos_w': L_pos_w,
+    'L_id_fixed': L_id_fixed,
+    'L_id_applied': L_id_applied,
     'L_L_displacement': L_L_displacement,
     'L_L_overlap': L_L_overlap,
     'L_L_normal_force': L_L_normal_force,
