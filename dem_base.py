@@ -136,7 +136,7 @@ def add_data():
         - iteration
         - unbalannced force (mean resultant forces / mean contact force)
     '''
-    plot.addData(iteration=O.iter, unbalForce=UnbalancedForce())
+    plot.addData(iteration=O.iter, unbalForce=unbalancedForce())
     
 # -----------------------------------------------------------------------------#
 # Load data
