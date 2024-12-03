@@ -124,8 +124,10 @@ def check():
     if O.iter > n_ite_max or max(window)<steady_state_detection:
         if print_all_dem:
             plot.plot(noShow=True).savefig('plot/dem/'+str(i_DEMPF_ite)+'.png')
+            plot.saveDataTxt('plot/dem/'+str(i_DEMPF_ite)+'.txt', vars=('iteration', 'unbalForce'))
         if print_dem:
             plot.plot(noShow=True).savefig('plot/dem.png')
+            plot.saveDataTxt('plot/dem.txt', vars=('iteration', 'unbalForce'))
         O.pause() # stop DEM simulation
     
 # -----------------------------------------------------------------------------#
