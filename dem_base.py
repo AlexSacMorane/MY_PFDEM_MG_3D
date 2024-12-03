@@ -120,10 +120,8 @@ def check():
     '''
     if O.iter < max(n_ite_max*0.01, n_steady_state_detection):
         return
-    window = plot.data['normal_force'][-n_steady_state_detection:]
-    if O.iter > n_ite_max or \
-       ((max(window)-min(window))<steady_state_detection*force_applied and
-        max(window)>force_applied and min(window)<force_applied):
+    window = plot.data['unbalForce'][-n_steady_state_detection:]
+    if O.iter > n_ite_max or max(window)<steady_state_detection:
         if print_all_dem:
             plot.plot(noShow=True).savefig('plot/dem/'+str(i_DEMPF_ite)+'.png')
         if print_dem:

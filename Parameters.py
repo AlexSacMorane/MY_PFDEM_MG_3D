@@ -53,7 +53,7 @@ def get_parameters():
     # steady state detection
     n_ite_max = 5000 # maximum number of iteration during a DEM step
     n_steady_state_detection = 100 # window size for the steady state detection
-    steady_state_detection = 0.05 # criterion for the steady state detection
+    steady_state_detection = 0.01 # criterion for the steady state detection
 
     # DEM material parameters
     # Young modulus
