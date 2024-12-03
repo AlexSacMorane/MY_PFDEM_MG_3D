@@ -37,7 +37,7 @@ def create_grains():
                         distField=L_sdf_i_map[i_grain].tolist(),
                         material=0)
         )
-        if i_grain == L_id_fixed: 
+        if i_grain in L_id_fixed: 
             O.bodies[-1].state.blockedDOFs = 'xyzXYZ'
         else :
             O.bodies[-1].state.blockedDOFs = 'XYZ'
