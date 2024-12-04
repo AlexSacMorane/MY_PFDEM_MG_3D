@@ -320,7 +320,8 @@ def plot_dem(dict_user, dict_sample):
 
     if 'overlap' in dict_user['L_figures']:
         fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
-        ax1.plot(dict_user['L_overlap'])
+        for i_contact in range(len(dict_user['L_L_overlap'])):
+            ax1.plot(dict_user['L_L_overlap'][i_contact])
         ax1.set_xlabel('iterations (-)')
         ax1.set_ylabel('overlap in DEM (-)')
         fig.tight_layout()
@@ -328,10 +329,10 @@ def plot_dem(dict_user, dict_sample):
         plt.close(fig)
     if 'normal_force' in dict_user['L_figures']:
         fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
-        ax1.plot(dict_user['L_normal_force'], label='DEM')
+        for i_contact in range(len(dict_user['L_L_normal_force'])):
+            ax1.plot(dict_user['L_L_normal_force'][i_contact])
         ax1.plot([0, len(dict_user['L_normal_force'])-1],\
-                 [dict_user['force_applied'], dict_user['force_applied']], label='target')
-        ax1.legend()
+                 [dict_user['force_applied'], dict_user['force_applied']], color='k', label='target')
         ax1.set_xlabel('iterations (-)')
         ax1.set_ylabel('normal force (-)')
         fig.tight_layout()
@@ -463,16 +464,20 @@ def plot_displacement(dict_user, dict_sample):
     Plot figure illustrating the cumulative displacement.
     '''
     # pp data
-    L_strain = []
-    for i_displacement in range(len(dict_user['L_L_displacement'][0])):
-        if i_displacement == 0:
-            L_displacement_cum = [dict_user['L_L_displacement'][0][i_displacement][2]]
-        else : 
-            L_displacement_cum.append(L_displacement_cum[-1]+dict_user['L_L_displacement'][0][i_displacement][2])
-        L_strain.append(L_displacement_cum[-1]/(2*dict_user['radius']))
+    L_L_strain = []
+    for i_grain in range(len(dict_user['L_L_displacement'][0])):
+        L_strain = []
+        for i_displacement in range(len(dict_user['L_L_displacement'])):
+            if i_displacement == 0:
+                L_displacement_cum = [dict_user['L_L_displacement'][i_displacement][i_grain][2]]
+            else : 
+                L_displacement_cum.append(L_displacement_cum[-1]+dict_user['L_L_displacement'][i_displacement][i_grain][2])
+            L_strain.append(L_displacement_cum[-1]/(2*dict_user['radius']))
+        L_L_strain.append(L_strain)
     # plot
     fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
-    ax1.plot(L_strain)
+    for i_grain in range(len(L_L_strain)):
+        ax1.plot(L_L_strain[i_grain])
     ax1.set_xlabel('iterations (-)')
     ax1.set_ylabel('vertical strain (-)')
     fig.tight_layout()

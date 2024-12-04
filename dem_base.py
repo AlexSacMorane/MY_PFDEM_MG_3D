@@ -39,7 +39,7 @@ def create_grains():
         )
         if i_grain in L_id_fixed: 
             O.bodies[-1].state.blockedDOFs = 'xyzXYZ'
-        else :
+        else : 
             O.bodies[-1].state.blockedDOFs = 'XYZ'
 
 # -----------------------------------------------------------------------------#
@@ -202,7 +202,11 @@ O.wait()
 
 L_displacement = []
 for i_grain in range(len(L_sdf_i_map)):
-    L_displacement.append(np.array(O.bodies[i_grain].state.pos - O.bodies[i_grain].state.refPos))
+    trans = np.array(O.bodies[i_grain].state.pos - O.bodies[i_grain].state.refPos)
+    rot_a = O.bodies[i_grain].state.ori.toAngleAxis()[0]
+    rot_v = O.bodies[i_grain].state.ori.toAngleAxis()[1]
+    L_displacement.append([trans[0], trans[1], trans[2],\
+                           rot_a, rot_v[0], rot_v[1], rot_v[2]])
 L_contact = []
 for i in O.interactions:
     # work only on grain-grain contact

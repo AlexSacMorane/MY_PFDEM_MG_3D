@@ -26,102 +26,230 @@ def move_phasefield(dict_user, dict_sample):
     # tracker
     dict_user['L_L_displacement'].append(dict_save['L_displacement'])
     if 'displacement' in dict_user['L_figures']:
-      plot_displacement(dict_user, dict_sample) # from tools.py
+        plot_displacement(dict_user, dict_sample) # from tools.py
 
     # iterate on grains
-    # grain 0 is fixed
-    for i_grain in range(1, len(dict_sample['L_etai_map'])):
-      # read displacement
-      displacement = L_displacement[i_grain] 
-      # print
-      print('grain', i_grain, ':', displacement)
+    for i_grain in range(0, len(dict_sample['L_etai_map'])):
+        # move only the grains not fixed
+        if i_grain not in dict_user['L_id_fixed']:
+            # read displacement
+            displacement = L_displacement[i_grain] 
+            # print
+            print('grain', i_grain, ':', displacement)
 
-      # loading old variables
-      eta_i_map = dict_sample['L_etai_map'][i_grain]
-      # updating phase map
-      eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-      # iteration on x
-      for i_x in range(len(dict_sample['x_L'])):
-          x = dict_sample['x_L'][i_x]
-          i_x_old = 0
-          # eta 1 
-          if displacement[0] < 0:
-              if x-displacement[0] <= dict_sample['x_L'][-1]:
-                  # look for window
-                  while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
-                      i_x_old = i_x_old + 1
-                  # interpolate
-                  eta_i_map_new[i_x, :, :] = (eta_i_map[(i_x_old+1), :, :] - eta_i_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
-                                            (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
-          elif displacement[0] > 0:
-              if dict_sample['x_L'][0] <= x-displacement[0]:
-                  # look for window
-                  while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
-                      i_x_old = i_x_old + 1
-                  # interpolate
-                  eta_i_map_new[i_x, :, :] = (eta_i_map[(i_x_old+1), :, :] - eta_i_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
-                                            (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
-          else :
-              eta_i_map_new = eta_i_map
-      
-      # loading old variables
-      eta_i_map = eta_i_map_new.copy()
-      # updating phase map
-      eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-      # iteration on y
-      for i_y in range(len(dict_sample['y_L'])):
-          y = dict_sample['y_L'][i_y]
-          i_y_old = 0
-          # eta 1 
-          if displacement[1] < 0:
-              if y-displacement[1] <= dict_sample['y_L'][-1]:
-                  # look for window
-                  while not (dict_sample['y_L'][i_y_old] <= y-displacement[1] and y-displacement[1] <= dict_sample['y_L'][i_y_old+1]):
-                      i_y_old = i_y_old + 1
-                  # interpolate
-                  eta_i_map_new[:, i_y, :] = (eta_i_map[:, (i_y_old+1), :] - eta_i_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
-                                            (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
-          elif displacement[1] > 0:
-              if dict_sample['y_L'][0] <= y-displacement[1]:
-                  # look for window
-                  while not (dict_sample['y_L'][i_y_old] <= y-displacement[1] and y-displacement[1] <= dict_sample['y_L'][i_y_old+1]):
-                      i_y_old = i_y_old + 1
-                  # interpolate
-                  eta_i_map_new[:, i_y, :] = (eta_i_map[:, (i_y_old+1), :] - eta_i_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
-                                            (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
-          else :
-              eta_i_map_new = eta_i_map
+            # TRANSLATION on x
+            # loading old variables
+            eta_i_map = dict_sample['L_etai_map'][i_grain]
+            # updating phase map
+            eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+            # iteration on x
+            for i_x in range(len(dict_sample['x_L'])):
+                x = dict_sample['x_L'][i_x]
+                i_x_old = 0
+                # eta 1 
+                if displacement[0] < 0:
+                    if x-displacement[0] <= dict_sample['x_L'][-1]:
+                        # look for window
+                        while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
+                            i_x_old = i_x_old + 1
+                        # interpolate
+                        eta_i_map_new[i_x, :, :] = (eta_i_map[(i_x_old+1), :, :] - eta_i_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
+                                                  (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
+                elif displacement[0] > 0:
+                    if dict_sample['x_L'][0] <= x-displacement[0]:
+                        # look for window
+                        while not (dict_sample['x_L'][i_x_old] <= x-displacement[0] and x-displacement[0] <= dict_sample['x_L'][i_x_old+1]):
+                            i_x_old = i_x_old + 1
+                        # interpolate
+                        eta_i_map_new[i_x, :, :] = (eta_i_map[(i_x_old+1), :, :] - eta_i_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
+                                                  (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
+                else :
+                    eta_i_map_new = eta_i_map
+            
+            # TRANSLATION on y
+            # loading old variables
+            eta_i_map = eta_i_map_new.copy()
+            # updating phase map
+            eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+            # iteration on y
+            for i_y in range(len(dict_sample['y_L'])):
+                y = dict_sample['y_L'][i_y]
+                i_y_old = 0
+                # eta 1 
+                if displacement[1] < 0:
+                    if y-displacement[1] <= dict_sample['y_L'][-1]:
+                        # look for window
+                        while not (dict_sample['y_L'][i_y_old] <= y-displacement[1] and y-displacement[1] <= dict_sample['y_L'][i_y_old+1]):
+                            i_y_old = i_y_old + 1
+                        # interpolate
+                        eta_i_map_new[:, i_y, :] = (eta_i_map[:, (i_y_old+1), :] - eta_i_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
+                                                  (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
+                elif displacement[1] > 0:
+                    if dict_sample['y_L'][0] <= y-displacement[1]:
+                        # look for window
+                        while not (dict_sample['y_L'][i_y_old] <= y-displacement[1] and y-displacement[1] <= dict_sample['y_L'][i_y_old+1]):
+                            i_y_old = i_y_old + 1
+                        # interpolate
+                        eta_i_map_new[:, i_y, :] = (eta_i_map[:, (i_y_old+1), :] - eta_i_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
+                                                  (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
+                else :
+                    eta_i_map_new = eta_i_map
 
-      # loading old variables
-      eta_i_map = eta_i_map_new.copy()
-      # updating phase map
-      eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-      # iteration on z
-      for i_z in range(len(dict_sample['z_L'])):
-          z = dict_sample['z_L'][i_z]
-          i_z_old = 0
-          # eta 1 
-          if displacement[2] < 0:
-              if z-displacement[2] <= dict_sample['z_L'][-1]:
-                  # look for window
-                  while not (dict_sample['z_L'][i_z_old] <= z-displacement[2] and z-displacement[2] <= dict_sample['z_L'][i_z_old+1]):
-                      i_z_old = i_z_old + 1
-                  # interpolate
-                  eta_i_map_new[:, :, i_z] = (eta_i_map[:, :, (i_z_old+1)] - eta_i_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
-                                            (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
-          elif displacement[2] > 0:
-              if dict_sample['z_L'][0] <= z-displacement[2]:
-                  # look for window
-                  while not (dict_sample['z_L'][i_z_old] <= z-displacement[2] and z-displacement[2] <= dict_sample['z_L'][i_z_old+1]):
-                      i_z_old = i_z_old + 1
-                  # interpolate
-                  eta_i_map_new[:, :, i_z] = (eta_i_map[:, :, (i_z_old+1)] - eta_i_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
-                                            (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
-          else :
-              eta_i_map_new = eta_i_map
+            # TRANSLATION on z
+            # loading old variables
+            eta_i_map = eta_i_map_new.copy()
+            # updating phase map
+            eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+            # iteration on z
+            for i_z in range(len(dict_sample['z_L'])):
+                z = dict_sample['z_L'][i_z]
+                i_z_old = 0
+                # eta 1 
+                if displacement[2] < 0:
+                    if z-displacement[2] <= dict_sample['z_L'][-1]:
+                        # look for window
+                        while not (dict_sample['z_L'][i_z_old] <= z-displacement[2] and z-displacement[2] <= dict_sample['z_L'][i_z_old+1]):
+                            i_z_old = i_z_old + 1
+                        # interpolate
+                        eta_i_map_new[:, :, i_z] = (eta_i_map[:, :, (i_z_old+1)] - eta_i_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
+                                                  (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
+                elif displacement[2] > 0:
+                    if dict_sample['z_L'][0] <= z-displacement[2]:
+                        # look for window
+                        while not (dict_sample['z_L'][i_z_old] <= z-displacement[2] and z-displacement[2] <= dict_sample['z_L'][i_z_old+1]):
+                            i_z_old = i_z_old + 1
+                        # interpolate
+                        eta_i_map_new[:, :, i_z] = (eta_i_map[:, :, (i_z_old+1)] - eta_i_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
+                                                  (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
+                else :
+                    eta_i_map_new = eta_i_map
 
-      # update variables
-      dict_sample['L_etai_map'][i_grain] = eta_i_map_new
+            # ROTATION
+            if displacement[3] != 0:
+                # compute center of mass
+                center_x = 0
+                center_y = 0
+                center_z = 0
+                counter = 0
+                # iterate on x
+                for i_x in range(len(dict_sample['x_L'])):
+                    # iterate on y
+                    for i_y in range(len(dict_sample['y_L'])):
+                        # iterate on z
+                        for i_z in range(len(dict_sample['z_L'])):
+                            # criterion to verify the point is inside the grain
+                            if dict_user['eta_contact_box_detection'] < eta_i_map_new[i_x, i_y, i_z]:
+                                center_x = center_x + dict_sample['x_L'][i_x]
+                                center_y = center_y + dict_sample['y_L'][i_y]
+                                center_z = center_z + dict_sample['z_L'][i_z]
+                                counter = counter + 1
+                # compute the center of mass
+                center_x = center_x/counter
+                center_y = center_y/counter
+                center_z = center_z/counter
+                center = np.array([center_x, center_y, center_z])
+                            
+                # compute matrice of rotation
+                # cf french wikipedia "quaternions et rotation dans l'espace"
+                a = displacement[3]
+                b = displacement[4]
+                c = displacement[5]
+                d = displacement[6]
+                M_rot = np.array([[a*a+b*b-c*c-d*d,     2*b*c-2*a*d,     2*a*c+2*b*d],
+                                  [    2*a*d+2*b*c, a*a-b*b+c*c-d*d,     2*c*d-2*a*b],
+                                  [    2*b*d-2*a*c,     2*a*b+2*c*d, a*a-b*b-c*c+d*d]])
+                M_rot_inv = np.linalg.inv(M_rot)
+                
+                # loading old variables
+                eta_i_map = eta_i_map_new.copy()
+                # updating phase map
+                eta_i_map_new = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
+                # iteration on x
+                for i_x in range(len(dict_sample['x_L'])):
+                    # iteration on y
+                    for i_y in range(len(dict_sample['y_L'])):
+                        # iteration on z
+                        for i_z in range(len(dict_sample['z_L'])):
+                            # create vector of the node
+                            p = np.array([dict_sample['x_L'][i_x], dict_sample['y_L'][i_y], dict_sample['z_L'][i_z]])
+                            # remove the center of the grain
+                            pp = p - center
+                            # applied the invert rotation
+                            pp = np.dot(M_rot_inv, pp)
+                            # applied center
+                            pp = pp + center
+                            # initialization 
+                            found = True
+                            # look for the vector in the x-axis                    
+                            if dict_sample['x_L'][0] <= pp[0] and pp[0] <= dict_sample['x_L'][-1]:
+                                i_x_old = 0
+                                while not (dict_sample['x_L'][i_x_old] <= pp[0] and pp[0] <= dict_sample['x_L'][i_x_old+1]):
+                                    i_x_old = i_x_old + 1
+                            else :
+                                found = False
+                            # look for the vector in the y-axis                    
+                            if dict_sample['y_L'][0] <= pp[1] and pp[1] <= dict_sample['y_L'][-1]:
+                                i_y_old = 0
+                                while not (dict_sample['y_L'][i_y_old] <= pp[1] and pp[1] <= dict_sample['y_L'][i_y_old+1]):
+                                    i_y_old = i_y_old + 1
+                            else :
+                                found = False
+                            # look for the vector in the z-axis                    
+                            if dict_sample['z_L'][0] <= pp[2] and pp[2] <= dict_sample['z_L'][-1]:
+                                i_z_old = 0
+                                while not (dict_sample['z_L'][i_z_old] <= pp[2] and pp[2] <= dict_sample['z_L'][i_z_old+1]):
+                                    i_z_old = i_z_old + 1
+                            else :
+                                found = False
+                            # triple interpolation if point found
+                            if found :
+                                # points
+                                p000 = np.array([  dict_sample['x_L'][i_x_old],   dict_sample['y_L'][i_y_old],   dict_sample['z_L'][i_z_old]])
+                                p100 = np.array([dict_sample['x_L'][i_x_old+1],   dict_sample['y_L'][i_y_old],   dict_sample['z_L'][i_z_old]])
+                                p010 = np.array([  dict_sample['x_L'][i_x_old], dict_sample['y_L'][i_y_old+1],   dict_sample['z_L'][i_z_old]])
+                                p001 = np.array([  dict_sample['x_L'][i_x_old],   dict_sample['y_L'][i_y_old], dict_sample['z_L'][i_z_old+1]])
+                                p101 = np.array([dict_sample['x_L'][i_x_old+1],   dict_sample['y_L'][i_y_old], dict_sample['z_L'][i_z_old+1]])
+                                p011 = np.array([  dict_sample['x_L'][i_x_old], dict_sample['y_L'][i_y_old+1], dict_sample['z_L'][i_z_old+1]])
+                                p110 = np.array([dict_sample['x_L'][i_x_old+1], dict_sample['y_L'][i_y_old+1],   dict_sample['z_L'][i_z_old]])
+                                p111 = np.array([dict_sample['x_L'][i_x_old+1], dict_sample['y_L'][i_y_old+1], dict_sample['z_L'][i_z_old+1]])
+                                # values
+                                q000 = eta_i_map[  i_x_old,   i_y_old,   i_z_old]
+                                q100 = eta_i_map[i_x_old+1,   i_y_old,   i_z_old]
+                                q010 = eta_i_map[  i_x_old, i_y_old+1,   i_z_old]
+                                q001 = eta_i_map[  i_x_old,   i_y_old, i_z_old+1]
+                                q101 = eta_i_map[i_x_old+1,   i_y_old, i_z_old+1]
+                                q011 = eta_i_map[  i_x_old, i_y_old+1, i_z_old+1]
+                                q110 = eta_i_map[i_x_old+1, i_y_old+1,   i_z_old]
+                                q111 = eta_i_map[i_x_old+1, i_y_old+1, i_z_old+1]
+
+                                # interpolation following the z-axis
+                                # points
+                                p00 = np.array([  dict_sample['x_L'][i_x_old],   dict_sample['y_L'][i_y_old]])
+                                p10 = np.array([dict_sample['x_L'][i_x_old+1],   dict_sample['y_L'][i_y_old]])
+                                p01 = np.array([  dict_sample['x_L'][i_x_old], dict_sample['y_L'][i_y_old+1]])
+                                p11 = np.array([dict_sample['x_L'][i_x_old+1], dict_sample['y_L'][i_y_old+1]])
+                                # values
+                                q00 = (q000*(p001[2]-pp[2]) + q001*(pp[2]-p000[2]))/(p001[2]-p000[2])
+                                q10 = (q100*(p101[2]-pp[2]) + q101*(pp[2]-p100[2]))/(p101[2]-p100[2])
+                                q01 = (q010*(p011[2]-pp[2]) + q011*(pp[2]-p010[2]))/(p011[2]-p010[2])
+                                q11 = (q110*(p111[2]-pp[2]) + q111*(pp[2]-p110[2]))/(p111[2]-p110[2])
+
+                                # interpolation following the y-axis
+                                # points
+                                p0 = np.array([  dict_sample['x_L'][i_x_old]])
+                                p1 = np.array([dict_sample['x_L'][i_x_old+1]])
+                                # values
+                                q0 = (q00*(p01[1]-pp[1]) + q01*(pp[1]-p00[1]))/(p01[1]-p00[1])
+                                q1 = (q10*(p11[1]-pp[1]) + q11*(pp[1]-p10[1]))/(p11[1]-p10[1])
+
+                                # interpolation following the x-axis
+                                eta_i_map_new[i_x, i_y, i_z] = (q0*(p1[0]-pp[0]) + q1*(pp[0]-p0[0]))/(p1[0]-p0[0])
+                                
+                            else :
+                                eta_i_map_new[i_x, i_y, i_z] = 0
+                              
+        # update variables
+        dict_sample['L_etai_map'][i_grain] = eta_i_map_new
 
 # -----------------------------------------------------------------------------#
 
