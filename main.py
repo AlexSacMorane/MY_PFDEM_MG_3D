@@ -169,8 +169,7 @@ def run_yade(dict_user, dict_sample):
                     dict_user['L_L_overlap'][ij].append(0)
                     dict_user['L_L_normal_force'][ij].append(np.array([0,0,0]))
             ij = ij + 1
-    # next function need to be adapted
-    #plot_dem(dict_user, dict_sample) # from tools.py
+    plot_dem(dict_user, dict_sample) # from tools.py
     tac_tempo = time.perf_counter() # compute performances
     dict_user['read_dem'] = dict_user['read_dem'] + tac_tempo-tic_tempo 
         
@@ -235,7 +234,7 @@ while dict_sample['i_DEMPF_ite'] < dict_user['n_DEMPF_ite']:
     dict_sample['i_DEMPF_ite'] = dict_sample['i_DEMPF_ite'] + 1
     print('\nStep',dict_sample['i_DEMPF_ite'],'/',dict_user['n_DEMPF_ite'],'\n')
 
-    # print configuration c and eta_1
+    # print configuration c and eta_i
     plot_slices(dict_user, dict_sample) # from tools
 
     # DEM

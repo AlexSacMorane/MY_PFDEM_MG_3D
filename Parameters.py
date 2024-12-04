@@ -32,8 +32,8 @@ def get_parameters():
     # dem, all_dem, overlap, normal_force, yade_vtk
     # contact_box, contact_volume, contact_surface, as, pressure
     # displacement
-    L_figures = ['mean_etai_c',\
-                 'overlap', 'all_dem',\
+    L_figures = ['mean_etai_c','performance',\
+                 'overlap', 'all_dem', \
                  'contact_volume', 'contact_surface', 'as',\
                  'displacement']
 
@@ -52,7 +52,7 @@ def get_parameters():
 
     # steady state detection
     n_ite_max = 5000 # maximum number of iteration during a DEM step
-    n_steady_state_detection = 100 # window size for the steady state detection
+    n_steady_state_detection = 10 # window size for the steady state detection
     steady_state_detection = 0.01 # criterion for the steady state detection
 
     # DEM material parameters
@@ -121,7 +121,7 @@ def get_parameters():
     # the time stepping and duration of one PF simualtion
     dt_PF = (0.01*24*60*60)/n_time # time step
     # n_t_PF*dt_PF gives the total time duration
-    n_t_PF = 200 # number of iterations
+    n_t_PF = 10 # number of iterations
     
     # the criteria on residual
     crit_res = 1e-3
