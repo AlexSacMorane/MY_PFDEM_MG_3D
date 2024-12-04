@@ -33,11 +33,12 @@ def sort_files(dict_user, dict_sample):
         <VTKFile type="PUnstructuredGrid" version="0.1" byte_order="LittleEndian" header_type="UInt32" compressor="vtkZLibDataCompressor">
         \t<PUnstructuredGrid GhostLevel="1">
         \t\t<PPointData>
+        \t\t\t<PDataArray type="Int32" Name="libmesh_node_id"/>
         \t\t\t<PDataArray type="Float64" Name="as"/>
         \t\t\t<PDataArray type="Float64" Name="kc"/>\n''')
         for i_eta in range(len(dict_sample['L_etai_map'])):
-            file.write('''\t\t\t<PDataArray type="Float64" Name="eta'''+str(i_eta+1)+'''"/>\n''')
-        file.write('''\t\t\t<PDataArray type="Float64" Name="c"/>
+            file.write('''\t\t\t\t<PDataArray type="Float64" Name="eta'''+str(i_eta+1)+'''"/>\n''')
+        file.write('''\t\t\t\t<PDataArray type="Float64" Name="c"/>
         \t\t</PPointData>
         \t\t<PCellData>
         \t\t\t<PDataArray type="Int32" Name="libmesh_elem_id"/>
