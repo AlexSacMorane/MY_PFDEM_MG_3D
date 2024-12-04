@@ -248,8 +248,8 @@ def move_phasefield(dict_user, dict_sample):
                             else :
                                 eta_i_map_new[i_x, i_y, i_z] = 0
                               
-        # update variables
-        dict_sample['L_etai_map'][i_grain] = eta_i_map_new
+            # update variables
+            dict_sample['L_etai_map'][i_grain] = eta_i_map_new
 
 # -----------------------------------------------------------------------------#
 
