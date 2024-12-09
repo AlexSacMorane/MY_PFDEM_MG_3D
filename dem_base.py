@@ -109,27 +109,25 @@ def applied_force():
     Apply a constant force on the top grain.
     '''
     F_applied = O.forces.f(control_plate.id)[w_control[1]]
-    if F_applied == 0:
-        pass
+    # compute correction
+    dF = F_applied - force_applied_target
+    v_plate_max = radius*0.0001/O.dt
+    v_try_abs = abs(1*dF)/O.dt
+    # maximal speed is applied to top wall
+    if v_try_abs < v_plate_max :
+        if w_control[1] == 0:
+            control_plate.state.vel = (np.sign(dF)*v_try_abs, 0, 0)
+        elif w_control[1] == 1:
+            control_plate.state.vel = (0, np.sign(dF)*v_try_abs, 0)
+        elif w_control[1] == 2:
+            control_plate.state.vel = (0, 0, np.sign(dF)*v_try_abs)
     else :
-        dF = F_applied - force_applied_target
-        v_plate_max = radius*0.0001/O.dt
-        v_try_abs = abs(1*dF)/O.dt
-        # maximal speed is applied to top wall
-        if v_try_abs < v_plate_max :
-            if w_control[1] == 0:
-                control_plate.state.vel = (np.sign(dF)*v_try_abs, 0, 0)
-            elif w_control[1] == 1:
-                control_plate.state.vel = (0, np.sign(dF)*v_try_abs, 0)
-            elif w_control[1] == 2:
-                control_plate.state.vel = (0, 0, np.sign(dF)*v_try_abs)
-        else :
-            if w_control[1] == 0:
-                control_plate.state.vel = (np.sign(dF)*v_plate_max, 0, 0)
-            elif w_control[1] == 1:
-                control_plate.state.vel = (0, np.sign(dF)*v_plate_max, 0)
-            elif w_control[1] == 2:
-                control_plate.state.vel = (0, 0, np.sign(dF)*v_plate_max)
+        if w_control[1] == 0:
+            control_plate.state.vel = (np.sign(dF)*v_plate_max, 0, 0)
+        elif w_control[1] == 1:
+            control_plate.state.vel = (0, np.sign(dF)*v_plate_max, 0)
+        elif w_control[1] == 2:
+            control_plate.state.vel = (0, 0, np.sign(dF)*v_plate_max)
 
 # -----------------------------------------------------------------------------#
 
