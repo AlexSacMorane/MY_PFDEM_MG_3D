@@ -69,7 +69,7 @@ def load_microstructure(dict_user, dict_sample):
     '''    
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
     # Load data
-    with open('data/level_sets.data', 'rb') as handle:
+    with open('level_set.data', 'rb') as handle:
         dict_save = pickle.load(handle)
 
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
@@ -108,7 +108,7 @@ def load_microstructure(dict_user, dict_sample):
                 for i_z in range(len(z_L)):
 
                     # distance to grains
-                    sdf = dict_save['L_sdf_i_map'][i_x, i_y, i_z]
+                    sdf = dict_save['L_sdf_i_map'][i_grain][i_x, i_y, i_z]
 
                     # compute phase variable
                     if sdf > dict_user['w_int']/2 :
