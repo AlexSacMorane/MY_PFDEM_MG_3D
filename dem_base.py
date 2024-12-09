@@ -57,7 +57,7 @@ def create_plots():
     '''
     Create plots during the DEM step.
     '''
-    plot.plots = {'iteration': ('unbalForce'), 'iteration ': ('pos_w_control', None, 'f_w_control')}
+    plot.plots = {'iteration': ('unbalForce'), 'iteration ': ('pos_w_control', None, 'f_w_control', 'f_target')}
 
 # -----------------------------------------------------------------------------#
 
@@ -154,12 +154,12 @@ def add_data():
     '''
     Add data to plot :
         - iteration
-        - unbalannced force (mean resultant forces / mean contact force)
+        - unbalanced force (mean resultant forces / mean contact force)
         - position of the control plate
         - force applied on the control plate
     '''
     plot.addData(iteration=O.iter, unbalForce=unbalancedForce(),\
-                 pos_w_control=control_plate.state.pos[w_control[1]], f_w_control=O.forces.f(control_plate.id)[w_control[1]])
+                 pos_w_control=control_plate.state.pos[w_control[1]], f_w_control=O.forces.f(control_plate.id)[w_control[1]], f_target=force_applied_target)
     
 # -----------------------------------------------------------------------------#
 # Load data
