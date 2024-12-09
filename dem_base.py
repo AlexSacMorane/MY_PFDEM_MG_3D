@@ -86,13 +86,13 @@ def create_engines():
     O.engines = [
             #VTKRecorder(recorders=["lsBodies"], fileName='./vtk/ite_PFDEM_'+str(i_DEMPF_ite)+'_', iterPeriod=0, multiblockLS=True, label='initial_export'),
             ForceResetter(),
-            PyRunner(command='applied_force()',iterPeriod=1, label='apply_force'),
             InsertionSortCollider([Bo1_LevelSet_Aabb(), Bo1_Wall_Aabb()], verletDist=0.00),
             InteractionLoop(
                     [Ig2_LevelSet_LevelSet_ScGeom(), Ig2_Wall_LevelSet_ScGeom()],
                     [Ip2_FrictMat_FrictMat_FrictPhys(kn=MatchMaker(algo='val', val=kn), ks=MatchMaker(algo='val', val=ks))],
                     [Law2_ScGeom_FrictPhys_CundallStrack(sphericalBodies=False)]),
             NewtonIntegrator(damping=0.1, label='newton', gravity=(0, 0, 0)),
+            PyRunner(command='applied_force()',iterPeriod=1, label='apply_force'),
     		PyRunner(command='add_data()',iterPeriod=1, label='data'),
             PyRunner(command='check()',iterPeriod=1, label='checker')
     ]
