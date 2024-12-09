@@ -145,7 +145,7 @@ def get_parameters():
                    [0, 0, z_min, 2]]
     
     # control of the wall
-    w_control = [] # [id, direction]
+    w_control = [1, 0] # [id, direction]
 
     #---------------------------------------------------------------------#
     # Grain positions
