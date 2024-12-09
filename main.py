@@ -116,9 +116,7 @@ def run_yade(dict_user, dict_sample):
     'steady_state_detection': dict_user['steady_state_detection'],
     'print_all_dem': 'all_dem' in dict_user['L_figures'],
     'print_dem': 'dem' in dict_user['L_figures'],
-    'print_vtk': 'yade_vtk' in dict_user['L_figures'],
-    'L_id_fixed': dict_user['L_id_fixed'],
-    'L_id_applied': dict_user['L_id_applied']
+    'print_vtk': 'yade_vtk' in dict_user['L_figures']
     }
     with open('data/main_to_dem.data', 'wb') as handle:
         pickle.dump(dict_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
