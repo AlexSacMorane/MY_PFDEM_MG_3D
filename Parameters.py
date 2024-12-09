@@ -42,7 +42,7 @@ def get_parameters():
 
     # shape of the grain
     # Sphere, Microstructure
-    Shape = 'Sphere'
+    Shape = 'Microstructure'
 
     # the radius of grains
     radius = 100*1e-6/n_dist # m/m
