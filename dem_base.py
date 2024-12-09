@@ -37,10 +37,7 @@ def create_grains():
                         distField=L_sdf_i_map[i_grain].tolist(),
                         material=0)
         )
-        if i_grain in L_id_fixed: 
-            O.bodies[-1].state.blockedDOFs = 'xyzXYZ'
-        else : 
-            O.bodies[-1].state.blockedDOFs = 'XYZ'
+        O.bodies[-1].state.blockedDOFs = 'XYZ'
 
 # -----------------------------------------------------------------------------#
 
@@ -48,8 +45,11 @@ def create_walls():
     '''
     Recreate walls.
     '''
+    global control_plate
     for i_wall in range(len(L_pos_w)):
         O.bodies.append(wall((L_pos_w[i_wall][0], L_pos_w[i_wall][1], L_pos_w[i_wall][2]), L_pos_w[i_wall][3], material=1))
+        if i_wall == w_control[0]:
+            control_plate = O.bodies[-1]
 
 # -----------------------------------------------------------------------------#
 
@@ -57,7 +57,7 @@ def create_plots():
     '''
     Create plots during the DEM step.
     '''
-    plot.plots = {'iteration': ('unbalForce')}
+    plot.plots = {'iteration': ('unbalForce'), 'iteration ': ('pos_w_control', None, 'f_w_control')}
 
 # -----------------------------------------------------------------------------#
 
@@ -108,8 +108,28 @@ def applied_force():
     '''
     Apply a constant force on the top grain.
     '''
-    for id_applied in L_id_applied:
-        O.forces.addF(id_applied, (0, 0, -force_applied))
+    F_applied = O.forces.f(control_plate.id)[w_control[1]]
+    if F_applied == 0:
+        pass
+    else :
+        dF = F_applied - force_applied_target
+        v_plate_max = radius*0.0001/O.dt
+        v_try_abs = abs(1*dF)/O.dt
+        # maximal speed is applied to top wall
+        if v_try_abs < v_plate_max :
+            if w_control[1] == 0:
+                control_plate.state.vel = (np.sign(dF)*v_try_abs, 0, 0)
+            elif w_control[1] == 1:
+                control_plate.state.vel = (0, np.sign(dF)*v_try_abs, 0)
+            elif w_control[1] == 2:
+                control_plate.state.vel = (0, 0, np.sign(dF)*v_try_abs)
+        else :
+            if w_control[1] == 0:
+                control_plate.state.vel = (np.sign(dF)*v_plate_max, 0, 0)
+            elif w_control[1] == 1:
+                control_plate.state.vel = (0, np.sign(dF)*v_plate_max, 0)
+            elif w_control[1] == 2:
+                control_plate.state.vel = (0, 0, np.sign(dF)*v_plate_max)
 
 # -----------------------------------------------------------------------------#
 
@@ -137,8 +157,11 @@ def add_data():
     Add data to plot :
         - iteration
         - unbalannced force (mean resultant forces / mean contact force)
+        - position of the control plate
+        - force applied on the control plate
     '''
-    plot.addData(iteration=O.iter, unbalForce=unbalancedForce())
+    plot.addData(iteration=O.iter, unbalForce=unbalancedForce(),\
+                 pos_w_control=control_plate.state.pos[w_control[1]], f_w_control=O.forces.f(control_plate.id)[w_control[1]])
     
 # -----------------------------------------------------------------------------#
 # Load data
@@ -155,14 +178,13 @@ ks = dict_save['ks']
 n_ite_max = dict_save['n_ite_max']
 i_DEMPF_ite = dict_save['i_DEMPF_ite']
 L_pos_w = dict_save['L_pos_w']
-force_applied = dict_save['force_applied']
+w_control = dict_save['w_control']
+force_applied_target = dict_save['force_applied']
 n_steady_state_detection = dict_save['n_steady_state_detection']
 steady_state_detection = dict_save['steady_state_detection']
 print_all_dem = dict_save['print_all_dem']
 print_dem = dict_save['print_dem']
 print_vtk = dict_save['print_vtk']
-L_id_fixed = dict_save['L_id_fixed']
-L_id_applied = dict_save['L_id_applied']
 density = 2000
 
 # from plane interpolation

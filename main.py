@@ -110,6 +110,7 @@ def run_yade(dict_user, dict_sample):
     'n_ite_max': dict_user['n_ite_max'],
     'i_DEMPF_ite': dict_sample['i_DEMPF_ite'],
     'L_pos_w': dict_user['L_pos_w'],
+    'w_control': dict_user['w_control'],
     'force_applied': dict_user['force_applied'],
     'n_steady_state_detection': dict_user['n_steady_state_detection'],
     'steady_state_detection': dict_user['steady_state_detection'],
@@ -200,6 +201,8 @@ tic = time.perf_counter()
 
 if dict_user['Shape'] == 'Sphere':
     create_spheres(dict_user, dict_sample) # from ic.py
+if dict_user['Shape'] == 'Microstructure':
+    load_microstructure(dict_user, dict_sample) # from ic.py
 create_solute(dict_user, dict_sample) # from ic.py
 
 # compute tracker

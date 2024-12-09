@@ -14,7 +14,7 @@ def get_parameters():
     '''
     #---------------------------------------------------------------------#
     # Norrmalization
-    n_dist = 100*1e-6 # m
+    n_dist = 1*1e-6 # m
     n_time = 24*60*60 # s
     n_mol = 0.73*1e3 * n_dist**3 # mol
 
@@ -41,7 +41,7 @@ def get_parameters():
     # Grain description
 
     # shape of the grain
-    # Sphere
+    # Sphere, Microstructure
     Shape = 'Sphere'
 
     # the radius of grains
@@ -73,16 +73,20 @@ def get_parameters():
     # Phase-Field (Moose)
 
     # mesh
-    x_min = -1.2*radius
-    x_max =  1.2*radius
-    y_min =  x_min
-    y_max =  x_max
-    n_mesh_xy = 40
-    factor_z_xy = 2
-    z_min = factor_z_xy*x_min
-    z_max = factor_z_xy*x_max
-    n_mesh_z = factor_z_xy*n_mesh_xy
-    m_size_mesh = ((x_max-x_min)/(n_mesh_xy-1)+(y_max-y_min)/(n_mesh_xy-1)+(z_max-z_min)/(n_mesh_z-1))/3
+    if Shape == 'Sphere':
+        x_min = -1.2*radius
+        x_max =  1.2*radius
+        y_min =  x_min
+        y_max =  x_max
+        n_mesh_xy = 40
+        factor_z_xy = 2
+        z_min = factor_z_xy*x_min
+        z_max = factor_z_xy*x_max
+        n_mesh_z = factor_z_xy*n_mesh_xy
+        m_size_mesh = ((x_max-x_min)/(n_mesh_xy-1)+(y_max-y_min)/(n_mesh_xy-1)+(z_max-z_min)/(n_mesh_z-1))/3
+    else :
+        # should be similar to the one used in the extraction
+        m_size_mesh = 11*1e-6/n_dist
     check_database = True
 
     # PF material parameters
@@ -133,24 +137,24 @@ def get_parameters():
     # Wall positions
     # x, y, z, orientation
 
-    L_pos_w = [[x_min, 0, 0, 0],
-               [x_max, 0, 0, 0],
-               [0, y_min, 0, 1],
-               [0, y_max, 0, 1],
-               [0, 0, z_min, 2]]
+    if Shape == 'Sphere': 
+        L_pos_w = [[x_min, 0, 0, 0],
+                   [x_max, 0, 0, 0],
+                   [0, y_min, 0, 1],
+                   [0, y_max, 0, 1],
+                   [0, 0, z_min, 2]]
+    
+    # control of the wall
+    w_control = [] # [id, direction]
 
     #---------------------------------------------------------------------#
     # Grain positions
     # x, y, z
 
-    L_pos_g = [[0, 0, -0.98*radius],
-               [0, 0,  0.98*radius]]
+    if Shape == 'Sphere':
+        L_pos_g = [[0, 0, -0.98*radius],
+                   [0, 0,  0.98*radius]]
     
-    # list of grain ids fixed
-    L_id_fixed = [0]
-    # list of grain ids to apply force
-    L_id_applied = [1]
-
     #---------------------------------------------------------------------#
     # trackers
 
@@ -227,10 +231,7 @@ def get_parameters():
     'n_t_PF': n_t_PF,
     'crit_res': crit_res,
     'eta_contact_box_detection': eta_contact_box_detection,
-    'L_pos_g': L_pos_g,
-    'L_pos_w': L_pos_w,
-    'L_id_fixed': L_id_fixed,
-    'L_id_applied': L_id_applied,
+    'w_control': w_control,
     'L_L_displacement': L_L_displacement,
     'L_L_overlap': L_L_overlap,
     'L_L_normal_force': L_L_normal_force,
@@ -261,16 +262,23 @@ def get_parameters():
     'L_loss_kc_m': L_loss_kc_m,
     'L_L_loss_pf_eta_i': L_L_loss_pf_eta_i,
     'L_loss_pf_c': L_loss_pf_c,
-    'L_loss_pf_m': L_loss_pf_m,
-    'x_min': x_min,
-    'x_max': x_max,
-    'y_min': y_min,
-    'y_max': y_max,
-    'z_min': z_min,
-    'z_max': z_max,
-    'n_mesh_x': n_mesh_xy,
-    'n_mesh_y': n_mesh_xy,
-    'n_mesh_z': n_mesh_z
+    'L_loss_pf_m': L_loss_pf_m
     }
 
+    if Shape == 'Sphere':
+        dict_user['x_min'] = x_min
+        dict_user['x_max'] = x_max
+        dict_user['y_min'] = y_min
+        dict_user['y_max'] = y_max
+        dict_user['z_min'] = z_min
+        dict_user['z_max'] = z_max
+        dict_user['n_mesh_x'] = n_mesh_xy
+        dict_user['n_mesh_y'] = n_mesh_xy
+        dict_user['n_mesh_z'] = n_mesh_z
+        dict_user['L_pos_w'] = L_pos_w
+        dict_user['L_pos_g'] = L_pos_g
+    
+    elif Shape == 'Microstructure':
+        pass
+        
     return dict_user
