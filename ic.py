@@ -93,6 +93,9 @@ def load_microstructure(dict_user, dict_sample):
     
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
     # Load data
+    print("Creating initial phase field maps")
+    L_etai_map = []
+    
     for i_data in [1,2]:
         
         with open('level_set_part'+str(i_data)+'.data', 'rb') as handle:
@@ -100,9 +103,7 @@ def load_microstructure(dict_user, dict_sample):
 
         # ------------------------------------------------------------------------------------------------------------------------------------------ #
         # iterate on grains     
-        print("Creating initial phase field maps")
-
-        L_etai_map = []
+        
         for i_grain in range(len(dict_save['L_sdf_i_map'])):
             # Create initial phase map  
             eta_i_map = np.zeros((len(x_L), len(y_L), len(z_L)))
