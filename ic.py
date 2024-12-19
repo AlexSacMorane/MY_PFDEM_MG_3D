@@ -69,7 +69,7 @@ def load_microstructure(dict_user, dict_sample):
     '''    
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
     # Load data
-    with open('level_set.data', 'rb') as handle:
+    with open('level_set_part0.data', 'rb') as handle:
         dict_save = pickle.load(handle)
 
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
@@ -92,34 +92,41 @@ def load_microstructure(dict_user, dict_sample):
     dict_user['L_pos_w'] = dict_save['L_pos_w']
     
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
-    # iterate on grains     
-    print("Creating initial phase field maps")
-
-    L_etai_map = []
-    for i_grain in range(len(dict_save['L_sdf_i_map'])):
-        # Create initial phase map  
-        eta_i_map = np.zeros((len(x_L), len(y_L), len(z_L)))
-    
-        # iteration on x
-        for i_x in range(len(x_L)):
-            # iteration on y
-            for i_y in range(len(y_L)):
-                # iteration on z
-                for i_z in range(len(z_L)):
-
-                    # distance to grains
-                    sdf = dict_save['L_sdf_i_map'][i_grain][i_x, i_y, i_z]
-
-                    # compute phase variable
-                    if sdf > dict_user['w_int']/2 :
-                        eta_i_map[i_x, i_y, i_z] = 1
-                    elif sdf < -dict_user['w_int']/2 :
-                        eta_i_map[i_x, i_y, i_z] = 0
-                    else :
-                        eta_i_map[i_x, i_y, i_z] = 0.5*(1+math.cos(math.pi*(-sdf+dict_user['w_int']/2)/dict_user['w_int']))
+    # Load data
+    for i_data in [1,2]:
         
-        # save
-        L_etai_map.append(eta_i_map)
+        with open('level_set_part'+str(i_data)+'.data', 'rb') as handle:
+            dict_save = pickle.load(handle)
+
+        # ------------------------------------------------------------------------------------------------------------------------------------------ #
+        # iterate on grains     
+        print("Creating initial phase field maps")
+
+        L_etai_map = []
+        for i_grain in range(len(dict_save['L_sdf_i_map'])):
+            # Create initial phase map  
+            eta_i_map = np.zeros((len(x_L), len(y_L), len(z_L)))
+        
+            # iteration on x
+            for i_x in range(len(x_L)):
+                # iteration on y
+                for i_y in range(len(y_L)):
+                    # iteration on z
+                    for i_z in range(len(z_L)):
+
+                        # distance to grains
+                        sdf = dict_save['L_sdf_i_map'][i_grain][i_x, i_y, i_z]
+
+                        # compute phase variable
+                        if sdf > dict_user['w_int']/2 :
+                            eta_i_map[i_x, i_y, i_z] = 0
+                        elif sdf < -dict_user['w_int']/2 :
+                            eta_i_map[i_x, i_y, i_z] = 1
+                        else :
+                            eta_i_map[i_x, i_y, i_z] = 0.5*(1+math.cos(math.pi*(sdf+dict_user['w_int']/2)/dict_user['w_int']))
+            
+            # save
+            L_etai_map.append(eta_i_map)
 
     # save dict
     dict_sample['L_etai_map'] = L_etai_map

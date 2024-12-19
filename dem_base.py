@@ -22,22 +22,24 @@ def create_grains():
     Recreate level set from data extrapolated with phase field output.
     '''
     print("Creating level set")
-
-    # grid
-    grid = RegularGrid(
-        min=(min(L_x), min(L_y), min(L_z)),
-        nGP=(len(L_x), len(L_y), len(L_z)),
-        spacing=L_x[1]-L_x[0] 
-    )   
-
-    # grains
     for i_grain in range(len(L_sdf_i_map)):
+
+        # grid
+        grid = RegularGrid(
+            min=(min(L_x_L_i[i_grain]), min(L_y_L_i[i_grain]), min(L_z_L_i[i_grain])),
+            nGP=(len(L_x_L_i[i_grain]), len(L_y_L_i[i_grain]), len(L_z_L_i[i_grain])),
+            spacing=L_x_L_i[i_grain][1]-L_x_L_i[i_grain][0] 
+        )  
+
+        # grid
         O.bodies.append(
             levelSetBody(grid=grid,
                         distField=L_sdf_i_map[i_grain].tolist(),
                         material=0)
-        )
+                        )
         O.bodies[-1].state.blockedDOFs = 'XYZ'
+        O.bodies[-1].state.pos = Vector3(L_rbm_to_apply[i_grain][0], L_rbm_to_apply[i_grain][1], L_rbm_to_apply[i_grain][2])
+        O.bodies[-1].state.refPos = Vector3(L_rbm_to_apply[i_grain][0], L_rbm_to_apply[i_grain][1], L_rbm_to_apply[i_grain][2])
 
 # -----------------------------------------------------------------------------#
 
@@ -57,7 +59,7 @@ def create_plots():
     '''
     Create plots during the DEM step.
     '''
-    plot.plots = {'iteration': ('unbalForce'), 'iteration ': ('pos_w_control', None, 'f_w_control', 'f_target')}
+    plot.plots = {'iteration': ('unbalForce'), 'iteration ': ('pos_w_control', None, 'f_w_control')}
 
 # -----------------------------------------------------------------------------#
 
@@ -84,7 +86,7 @@ def create_engines():
         Fs = ks.us
     '''
     O.engines = [
-            #VTKRecorder(recorders=["lsBodies"], fileName='./vtk/ite_PFDEM_'+str(i_DEMPF_ite)+'_', iterPeriod=0, multiblockLS=True, label='initial_export'),
+            VTKRecorder(recorders=["lsBodies"], fileName='./vtk/ite_PFDEM_'+str(i_DEMPF_ite)+'_', iterPeriod=0, multiblockLS=True, label='initial_export'),
             ForceResetter(),
             InsertionSortCollider([Bo1_LevelSet_Aabb(), Bo1_Wall_Aabb()], verletDist=0.00),
             InteractionLoop(
@@ -154,12 +156,12 @@ def add_data():
     '''
     Add data to plot :
         - iteration
-        - unbalanced force (mean resultant forces / mean contact force)
+        - unbalannced force (mean resultant forces / mean contact force)
         - position of the control plate
         - force applied on the control plate
     '''
     plot.addData(iteration=O.iter, unbalForce=unbalancedForce(),\
-                 pos_w_control=control_plate.state.pos[w_control[1]], f_w_control=O.forces.f(control_plate.id)[w_control[1]], f_target=force_applied_target)
+                 pos_w_control=control_plate.state.pos[w_control[1]], f_w_control=O.forces.f(control_plate.id)[w_control[1]])
     
 # -----------------------------------------------------------------------------#
 # Load data
@@ -186,12 +188,13 @@ print_vtk = dict_save['print_vtk']
 density = 2000
 
 # from plane interpolation
-with open('data/level_sets.data', 'rb') as handle:
+with open('data/level_set.data', 'rb') as handle:
     dict_save = pickle.load(handle)
-L_x = dict_save['L_x']
-L_y = dict_save['L_y']
-L_z = dict_save['L_z']
 L_sdf_i_map = dict_save['L_sdf_i_map']
+L_rbm_to_apply = dict_save['L_rbm_to_apply']
+L_x_L_i = dict_save['L_x_L_i']
+L_y_L_i = dict_save['L_y_L_i']
+L_z_L_i = dict_save['L_z_L_i']
 
 # -----------------------------------------------------------------------------#
 # Plan simulation

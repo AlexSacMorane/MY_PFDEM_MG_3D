@@ -167,10 +167,17 @@ def compute_levelset(dict_user, dict_sample):
     From a phase map, compute level set function.
     '''
     L_sdf_i_map = []
+    L_rbm_to_apply = []
+    L_x_L_i = []
+    L_y_L_i = []
+    L_z_L_i = []
     # iterate on the phase variable
     for i_grain in range(len(dict_sample['L_etai_map'])):
         # compute binary map
-        bin_i_map = np.array(np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z'])))
+        bin_i_map = np.array(-np.ones((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z'])))
+        
+        # compute center of the grain
+        L_points_inside = []
         # iteration on x
         for i_x in range(len(dict_sample['x_L'])):
             # iteration on y
@@ -180,23 +187,112 @@ def compute_levelset(dict_user, dict_sample):
                     # grain 1
                     if dict_sample['L_etai_map'][i_grain][i_x, i_y, i_z] > 0.5:
                         bin_i_map[i_x, i_y, i_z] = 1
+                        L_points_inside.append(np.array([dict_sample['x_L'][i_x], dict_sample['y_L'][i_y], dict_sample['z_L'][i_z]]))
                     else :
                         bin_i_map[i_x, i_y, i_z] = -1
+
+        # look for dimensions of box    
+        # -x limit
+        i_x = 0
+        found = False
+        while (not found) and (i_x < bin_i_map.shape[0]):
+            if np.max(bin_i_map[i_x, :, :]) == -1:
+                i_x_min_lim = i_x
+            else :
+                found = True
+            i_x = i_x + 1
+        # +x limit
+        i_x = bin_i_map.shape[0]-1
+        found = False
+        while not found and 0 <= i_x:
+            if np.max(bin_i_map[i_x, :, :]) == -1:
+                i_x_max_lim = i_x
+            else :
+                found = True
+            i_x = i_x - 1
+        # number of nodes on x
+        n_nodes_x = i_x_max_lim-i_x_min_lim+1
+        # -y limit
+        i_y = 0
+        found = False
+        while (not found) and (i_y < bin_i_map.shape[1]):
+            if np.max(bin_i_map[:, i_y, :]) == -1:
+                i_y_min_lim = i_y
+            else :
+                found = True
+            i_y = i_y + 1
+        # +y limit
+        i_y = bin_i_map.shape[1]-1
+        found = False
+        while not found and 0 <= i_y:
+            if np.max(bin_i_map[:, i_y, :]) == -1:
+                i_y_max_lim = i_y
+            else :
+                found = True
+            i_y = i_y - 1
+        # number of nodes on y
+        n_nodes_y = i_y_max_lim-i_y_min_lim+1
+        # -z limit
+        i_z = 0
+        found = False
+        while (not found) and (i_z < bin_i_map.shape[2]):
+            if np.max(bin_i_map[:, :, i_z]) == -1:
+                i_z_min_lim = i_z
+            else :
+                found = True
+            i_z = i_z + 1
+        # +z limit
+        i_z = bin_i_map.shape[2]-1
+        found = False
+        while not found and 0 <= i_z:
+            if np.max(bin_i_map[:, :, i_z]) == -1:
+                i_z_max_lim = i_z
+            else :
+                found = True
+            i_z = i_z - 1
+        # number of nodes on z
+        n_nodes_z = i_z_max_lim-i_z_min_lim+1
+
+        # extraction of data
+        bin_i_map = bin_i_map[i_x_min_lim:i_x_max_lim+1,
+                              i_y_min_lim:i_y_max_lim+1,
+                              i_z_min_lim:i_z_max_lim+1] 
+
+        # creation of sub mesh
+        m_size = dict_sample['x_L'][1] - dict_sample['x_L'][0]
+        x_L_i = np.arange(-m_size*(n_nodes_x-1)/2,
+                           m_size*(n_nodes_x-1)/2+0.1*m_size,
+                           m_size)
+        y_L_i = np.arange(-m_size*(n_nodes_y-1)/2,
+                           m_size*(n_nodes_y-1)/2+0.1*m_size,
+                           m_size)
+        z_L_i = np.arange(-m_size*(n_nodes_z-1)/2,
+                           m_size*(n_nodes_z-1)/2+0.1*m_size,
+                           m_size)
+
+        # compute rbm to apply
+        rbm_to_apply = [dict_sample['x_L'][i_x_min_lim]-x_L_i[0],
+                        dict_sample['y_L'][i_y_min_lim]-y_L_i[0],
+                        dict_sample['z_L'][i_z_min_lim]-z_L_i[0]]
+
         # compute signed distance function
-        sdf_i_map = -skfmm.distance(bin_i_map, dx=np.array([dict_sample['x_L'][1]-dict_sample['x_L'][0],\
-                                                            dict_sample['y_L'][1]-dict_sample['y_L'][0],\
-                                                            dict_sample['z_L'][1]-dict_sample['z_L'][0]]))
+        sdf_i_map = -skfmm.distance(bin_i_map, dx=np.array([m_size, m_size, m_size]))
         # save
         L_sdf_i_map.append(sdf_i_map)
+        L_rbm_to_apply.append(rbm_to_apply)
+        L_x_L_i.append(x_L_i)
+        L_y_L_i.append(y_L_i)
+        L_z_L_i.append(z_L_i)
 
     # save data
     dict_save = {
-    'L_x': dict_sample['x_L'],
-    'L_y': dict_sample['y_L'],
-    'L_z': dict_sample['z_L'],
-    'L_sdf_i_map': L_sdf_i_map
+    'L_sdf_i_map': L_sdf_i_map,
+    'L_rbm_to_apply': L_rbm_to_apply,
+    'L_x_L_i': L_x_L_i,
+    'L_y_L_i': L_y_L_i,
+    'L_z_L_i': L_z_L_i
     }
-    with open('data/level_sets.data', 'wb') as handle:
+    with open('data/level_set.data', 'wb') as handle:
         pickle.dump(dict_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
