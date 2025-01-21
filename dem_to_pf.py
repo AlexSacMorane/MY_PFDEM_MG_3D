@@ -338,10 +338,13 @@ def compute_contact(dict_user, dict_sample):
   for i_grain in range(len(dict_sample['L_etai_map'])-1):
       for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
           i_contact = 0
-          contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-          while not contact_found and i_contact < len(L_contact)-1:
-                i_contact = i_contact + 1
-                contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+          if len(L_contact) > 0 :
+              contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+              while not contact_found and i_contact < len(L_contact)-1:
+                  i_contact = i_contact + 1
+                  contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+          else :
+              contact_found = False  
           if dict_sample['i_DEMPF_ite'] == 1:
               if contact_found:
                   dict_user['L_L_contact_box_x'].append([dict_sample['L_contact_box'][i_contact][1]-dict_sample['L_contact_box'][i_contact][0]])
@@ -413,10 +416,13 @@ def compute_as(dict_user, dict_sample):
     for i_grain in range(len(dict_sample['L_etai_map'])-1):
         for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
             i_contact = 0
-            contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-            while not contact_found and i_contact < len(L_contact)-1:
-                i_contact = i_contact + 1
+            if len(L_contact) > 0:
                 contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+                while not contact_found and i_contact < len(L_contact)-1:
+                    i_contact = i_contact + 1
+                    contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            else :
+                contact_found = False
             if dict_sample['i_DEMPF_ite'] == 1:
                 if contact_found:
                     dict_user['L_L_contact_pressure'].append([L_pressure_tempo[i_contact]])
