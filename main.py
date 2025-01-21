@@ -26,14 +26,14 @@ def run_moose(dict_user, dict_sample):
     tic_tempo = time.perf_counter() # compute performances
     move_phasefield(dict_user, dict_sample) # in dem_to_pf.py
     tac_tempo = time.perf_counter() # compute performances
-    dict_user['move_pf'] = dict_user['move_pf'] + tac_tempo-tic_tempo 
+    dict_user['move_pf'] = dict_user['move_pf'] + tac_tempo-tic_tempo
     # check mass
     compute_mass_loss(dict_user, dict_sample, 'L_loss_move_pf') # from tools.py
-    
+
     # write pf file
     for i_grain in range(len(dict_sample['L_etai_map'])):
         write_array_txt(dict_sample, 'eta_'+str(i_grain+1), dict_sample['L_etai_map'][i_grain]) # from dem_to_pf.py
-    
+
     # from dem to pf
     # compute mass
     compute_mass(dict_user, dict_sample) # from tools.py
@@ -41,7 +41,7 @@ def run_moose(dict_user, dict_sample):
     tic_tempo = time.perf_counter() # compute performances
     compute_kc(dict_user, dict_sample) # in dem_to_pf.py
     tac_tempo = time.perf_counter() # compute performances
-    dict_user['comp_kc'] = dict_user['comp_kc'] + tac_tempo-tic_tempo 
+    dict_user['comp_kc'] = dict_user['comp_kc'] + tac_tempo-tic_tempo
     # check mass
     compute_mass_loss(dict_user, dict_sample, 'L_loss_kc') # from tools.py
     # compute activity map
@@ -50,15 +50,15 @@ def run_moose(dict_user, dict_sample):
     plot_contact(dict_user, dict_sample) # in tools.py
     compute_as(dict_user, dict_sample) # in dem_to_pf.py
     tac_tempo = time.perf_counter() # compute performances
-    dict_user['comp_as'] = dict_user['comp_as'] + tac_tempo-tic_tempo 
-    
+    dict_user['comp_as'] = dict_user['comp_as'] + tac_tempo-tic_tempo
+
     # generate .i file
     tic_tempo = time.perf_counter() # compute performances
     write_i(dict_user, dict_sample) # in dem_to_pf.py
     tac_tempo = time.perf_counter() # compute performances
     tac_dem_to_pf = time.perf_counter() # compute dem_to_pf performances
     dict_user['L_t_dem_to_pf'].append(tac_dem_to_pf-tic_dem_to_pf)
-    dict_user['write_i'] = dict_user['write_i'] + tac_tempo-tic_tempo 
+    dict_user['write_i'] = dict_user['write_i'] + tac_tempo-tic_tempo
 
     # pf
     # compute mass
@@ -68,24 +68,24 @@ def run_moose(dict_user, dict_sample):
     os.system('mpiexec -n '+str(dict_user['n_proc'])+' ~/projects/moose/modules/phase_field/phase_field-opt -i pf.i')
     tac_pf = time.perf_counter() # compute pf performances
     dict_user['L_t_pf'].append(tac_pf-tic_pf)
-    dict_user['solve_pf'] = dict_user['solve_pf'] + tac_pf-tic_pf 
-    
+    dict_user['solve_pf'] = dict_user['solve_pf'] + tac_pf-tic_pf
+
     # from pf to dem
     tic_tempo = time.perf_counter() # compute performances
     last_j_str = sort_files(dict_user, dict_sample) # in pf_to_dem.py
     tac_dem_to_pf = time.perf_counter() # compute dem_to_pf performances
     tac_tempo = time.perf_counter() # compute performances
-    dict_user['sort_pf'] = dict_user['sort_pf'] + tac_tempo-tic_tempo 
+    dict_user['sort_pf'] = dict_user['sort_pf'] + tac_tempo-tic_tempo
 
     print('Reading data')
     tic_pf_to_dem = time.perf_counter() # compute pf_to_dem performances
     read_vtk(dict_user, dict_sample, last_j_str) # in pf_to_dem.py
     tac_pf_to_dem = time.perf_counter() # compute pf_to_dem performances
     dict_user['L_t_pf_to_dem_2'].append(tac_pf_to_dem-tic_pf_to_dem)
-    dict_user['read_pf'] = dict_user['read_pf'] + tac_pf_to_dem-tic_pf_to_dem 
+    dict_user['read_pf'] = dict_user['read_pf'] + tac_pf_to_dem-tic_pf_to_dem
     # check mass
     compute_mass_loss(dict_user, dict_sample, 'L_loss_pf') # from tools.py
-    
+
 # ------------------------------------------------------------------------------------------------------------------------------------------ #
 
 def run_yade(dict_user, dict_sample):
@@ -97,8 +97,8 @@ def run_yade(dict_user, dict_sample):
     compute_levelset(dict_user, dict_sample) # from pf_to_dem.py
     tac_pf_to_dem = time.perf_counter() # compute pf_to_dem performances
     dict_user['L_t_pf_to_dem_1'].append(tac_pf_to_dem-tic_pf_to_dem)
-    dict_user['comp_ls'] = dict_user['comp_ls'] + tac_pf_to_dem-tic_pf_to_dem 
-    
+    dict_user['comp_ls'] = dict_user['comp_ls'] + tac_pf_to_dem-tic_pf_to_dem
+
     # transmit data
     tic_tempo = time.perf_counter() # compute performances
     dict_save = {
@@ -121,8 +121,8 @@ def run_yade(dict_user, dict_sample):
     with open('data/main_to_dem.data', 'wb') as handle:
         pickle.dump(dict_save, handle, protocol=pickle.HIGHEST_PROTOCOL)
     tac_tempo = time.perf_counter() # compute performances
-    dict_user['save_dem'] = dict_user['save_dem'] + tac_tempo-tic_tempo 
-    
+    dict_user['save_dem'] = dict_user['save_dem'] + tac_tempo-tic_tempo
+
     if 'yade_vtk' in dict_user['L_figures']:
         create_folder('vtk/yade') # from tools.py
 
@@ -133,8 +133,8 @@ def run_yade(dict_user, dict_sample):
     #os.system('yadedaily -j '+str(dict_user['n_proc'])+' dem_base.py')
     tac_dem = time.perf_counter() # compute dem performances
     dict_user['L_t_dem'].append(tac_dem-tic_dem)
-    dict_user['solve_dem'] = dict_user['solve_dem'] + tac_dem-tic_dem 
-    
+    dict_user['solve_dem'] = dict_user['solve_dem'] + tac_dem-tic_dem
+
     # sort files
     #sort_dem_files(dict_user, dict_sample) # from dem_to_pf.py
 
@@ -149,10 +149,13 @@ def run_yade(dict_user, dict_sample):
     for i_grain in range(len(dict_sample['L_etai_map'])-1):
         for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
             i_contact = 0
-            contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-            while not contact_found and i_contact < len(L_contact)-1:
-                i_contact = i_contact + 1
+            if len(L_contact) > 0 :
                 contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+                while not contact_found and i_contact < len(L_contact)-1:
+                    i_contact = i_contact + 1
+                    contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            else : 
+                contact_found = False
             if dict_sample['i_DEMPF_ite'] == 1:
                 if contact_found:
                     dict_user['L_L_overlap'].append([L_contact[i_contact][2]])
@@ -170,11 +173,11 @@ def run_yade(dict_user, dict_sample):
             ij = ij + 1
     plot_dem(dict_user, dict_sample) # from tools.py
     tac_tempo = time.perf_counter() # compute performances
-    dict_user['read_dem'] = dict_user['read_dem'] + tac_tempo-tic_tempo 
-        
+    dict_user['read_dem'] = dict_user['read_dem'] + tac_tempo-tic_tempo
+
 # ------------------------------------------------------------------------------------------------------------------------------------------ #
 # Plan
-    
+
 # get parameters
 dict_user = get_parameters() # from Parameters.py
 dict_sample = {}
@@ -248,13 +251,13 @@ while dict_sample['i_DEMPF_ite'] < dict_user['n_DEMPF_ite']:
     tic_tempo = time.perf_counter() # compute performances
     plot_sum_mean_etai_c(dict_user, dict_sample) # from tools.py
     tac_tempo = time.perf_counter() # compute performances
-    dict_user['plot_s_m_etai_c'] = dict_user['plot_s_m_etai_c'] + tac_tempo-tic_tempo 
-    
+    dict_user['plot_s_m_etai_c'] = dict_user['plot_s_m_etai_c'] + tac_tempo-tic_tempo
+
     # plot performances
     tic_tempo = time.perf_counter() # compute performances
     plot_performances(dict_user, dict_sample) # from tools.py
     tac_tempo = time.perf_counter() # compute performances
-    dict_user['plot_perf'] = dict_user['plot_perf'] + tac_tempo-tic_tempo 
+    dict_user['plot_perf'] = dict_user['plot_perf'] + tac_tempo-tic_tempo
 
 # ------------------------------------------------------------------------------------------------------------------------------------------ #
 # close simulation
@@ -273,7 +276,7 @@ seconds = int(tac-tic - hours*60*60 - minutes*60)
 print("\nSimulation time : "+str(hours)+" hours "+str(minutes)+" minutes "+str(seconds)+" seconds")
 print('Simulation ends')
 
-# save mesh database 
+# save mesh database
 save_mesh_database(dict_user, dict_sample) # from tools.py
 
 # sort files
@@ -283,4 +286,3 @@ reduce_n_vtk_files(dict_user, dict_sample) # from tools.py
 print('\n')
 print('mass csv:', dict_user['L_sum_mass'][0], '->', dict_user['L_sum_mass'][-1])
 print('=', 100*abs(dict_user['L_sum_mass'][0]-dict_user['L_sum_mass'][-1])/dict_user['L_sum_mass'][0], '%')
-

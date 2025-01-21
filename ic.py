@@ -9,7 +9,7 @@ def create_spheres(dict_user, dict_sample):
     '''
     Create initial conditions with spheres.
     Mesh and phase field maps are generated
-    '''    
+    '''
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
     # Create initial mesh
     print("Creating initial mesh")
@@ -19,7 +19,7 @@ def create_spheres(dict_user, dict_sample):
     z_L = np.linspace(dict_user['z_min'], dict_user['z_max'], dict_user['n_mesh_z'])
 
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
-    # iterate on grains     
+    # iterate on grains
     print("Creating initial phase field maps")
 
     L_etai_map = []
@@ -27,9 +27,9 @@ def create_spheres(dict_user, dict_sample):
         # position of the grains
         pos_i = dict_user['L_pos_g'][i_grain]
 
-        # Create initial phase map  
+        # Create initial phase map
         eta_i_map = np.zeros((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
-    
+
         # iteration on x
         for i_x in range(len(x_L)):
             x = x_L[i_x]
@@ -50,7 +50,7 @@ def create_spheres(dict_user, dict_sample):
                         eta_i_map[i_x, i_y, i_z] = 0.5*(1+math.cos(math.pi*(d_node_to_g-dict_user['radius']+dict_user['w_int']/2)/dict_user['w_int']))
                     elif dict_user['radius']+dict_user['w_int']/2 <= d_node_to_g :
                         eta_i_map[i_x, i_y, i_z] = 0
-        
+
         # save
         L_etai_map.append(eta_i_map)
 
@@ -66,7 +66,7 @@ def load_microstructure(dict_user, dict_sample):
     '''
     Load microstructure as initial conditions.
     Mesh and phase field maps are generated
-    '''    
+    '''
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
     # Load data
     with open('level_set_part0.data', 'rb') as handle:
@@ -90,24 +90,24 @@ def load_microstructure(dict_user, dict_sample):
     # Create walls
 
     dict_user['L_pos_w'] = dict_save['L_pos_w']
-    
+
     # ------------------------------------------------------------------------------------------------------------------------------------------ #
     # Load data
     print("Creating initial phase field maps")
     L_etai_map = []
-    
-    for i_data in [1,2]:
-        
+
+    for i_data in [1]:
+
         with open('level_set_part'+str(i_data)+'.data', 'rb') as handle:
             dict_save = pickle.load(handle)
 
         # ------------------------------------------------------------------------------------------------------------------------------------------ #
-        # iterate on grains     
-        
+        # iterate on grains
+
         for i_grain in range(len(dict_save['L_sdf_i_map'])):
-            # Create initial phase map  
+            # Create initial phase map
             eta_i_map = np.zeros((len(x_L), len(y_L), len(z_L)))
-        
+
             # iteration on x
             for i_x in range(len(x_L)):
                 # iteration on y
@@ -125,7 +125,7 @@ def load_microstructure(dict_user, dict_sample):
                             eta_i_map[i_x, i_y, i_z] = 1
                         else :
                             eta_i_map[i_x, i_y, i_z] = 0.5*(1+math.cos(math.pi*(sdf+dict_user['w_int']/2)/dict_user['w_int']))
-            
+
             # save
             L_etai_map.append(eta_i_map)
 
@@ -134,7 +134,7 @@ def load_microstructure(dict_user, dict_sample):
     dict_sample['x_L'] = x_L
     dict_sample['y_L'] = y_L
     dict_sample['z_L'] = z_L
- 
+
 # ------------------------------------------------------------------------------------------------------------------------------------------ #
 
 def create_solute(dict_user, dict_sample):
