@@ -191,7 +191,8 @@ dict_sample = {}
 create_folder('vtk') # from tools.py
 create_folder('plot') # from tools.py
 if 'configuration_eta' in dict_user['L_figures'] or\
-   'configuration_c' in dict_user['L_figures']:
+   'configuration_c' in dict_user['L_figures'] or\
+   'configuration_s_eta' in dict_user['L_figures']:
     create_folder('plot/configuration') # from tools.py
 if 'all_dem' in dict_user['L_figures']:
     create_folder('plot/dem') # from tools.py
