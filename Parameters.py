@@ -21,28 +21,24 @@ def get_parameters():
     #---------------------------------------------------------------------#
     # PFDEM
 
-    n_DEMPF_ite = 2 # number of PFDEM iterations
+    n_DEMPF_ite = 1 # number of PFDEM iterations
     n_proc = 10 # number of processors used
     j_total = 0 # index global of results
     n_max_vtk_files = None # maximum number of vtk files (can be None to save all files)
 
     # Select Figures to plot
     # Available:
-    # n_grain_kc_map, sum_etai_c, configuration_eta, configuration_c, mean_etai_c, mass_loss, performances
+    # n_grain_kc_map, sum_etai_c, configuration_s_eta, configuration_eta, configuration_c, mean_etai_c, mass_loss, performances
     # dem, all_dem, overlap, normal_force, yade_vtk
     # contact_box, contact_volume, contact_surface, as, pressure
-    # displacement
-    L_figures = ['mean_etai_c','performance',\
-                 'overlap', 'all_dem', \
-                 'contact_volume', 'contact_surface', 'as',\
-                 'displacement']
+    # displacement, displacement_box
+    L_figures = ['mean_etai_c','performance','configuration_s_eta',\
+                 'dem', \
+                 'as',\
+                 'displacement', 'displacement_box']
 
     #---------------------------------------------------------------------#
     # Grain description
-
-    # shape of the grain
-    # Sphere, Microstructure
-    Shape = 'Sphere'
 
     # the radius of grains
     radius = 100*1e-6/n_dist # m/m
@@ -73,20 +69,18 @@ def get_parameters():
     # Phase-Field (Moose)
 
     # mesh
-    if Shape == 'Sphere':
-        x_min = -1.1*2*radius
-        x_max =  1.1*2*radius
-        y_min = -1.1*radius
-        y_max =  1.1*radius
-        z_min = x_min
-        z_max = x_max
-        n_mesh_x = 88
-        n_mesh_y = 44
-        n_mesh_z = n_mesh_x
-        m_size_mesh = ((x_max-x_min)/(n_mesh_x-1)+(y_max-y_min)/(n_mesh_y-1)+(z_max-z_min)/(n_mesh_z-1))/3
-    else :
-        # should be similar to the one used in the extraction
-        m_size_mesh = 11*1e-6/n_dist
+    x_min = -1.1*2*radius
+    x_max =  1.1*2*radius
+    y_min = -1.1*radius
+    y_max =  1.1*radius
+    z_min = x_min
+    z_max = x_max
+    n_mesh_x = 100
+    n_mesh_y = 50
+    n_mesh_z = n_mesh_x
+    m_size_mesh = ((x_max-x_min)/(n_mesh_x-1)+(y_max-y_min)/(n_mesh_y-1)+(z_max-z_min)/(n_mesh_z-1))/3
+    
+    # check database
     check_database = True
 
     # PF material parameters
@@ -102,7 +96,7 @@ def get_parameters():
     Mobility_eff = 1*(100*1e-6/(24*60*60))/(n_dist/n_time) # m.s-1/(m.s-1)
 
     # temperature
-    temperature = 623 # K
+    temperature = 623 # K 
     # molar volume
     V_m = (2.2*1e-5)/(n_dist**3/n_mol) # (m3 mol-1)/(m3 mol-1)
     # constant
@@ -125,11 +119,11 @@ def get_parameters():
     # the time stepping and duration of one PF simualtion
     dt_PF = (0.01*24*60*60)/n_time # time step
     # n_t_PF*dt_PF gives the total time duration
-    n_t_PF = 10 # number of iterations
-
+    n_t_PF = 1 # number of iterations
+    
     # the criteria on residual
     crit_res = 1e-3
-
+    
     # Contact box detection
     eta_contact_box_detection = 0.1 # value of the phase field searched to determine the contact box
 
@@ -137,27 +131,22 @@ def get_parameters():
     # Wall positions
     # x, y, z, orientation
 
-    if Shape == 'Sphere':
-        L_pos_w = [[-2*radius, 0, 0, 0],
-                   [ 2*radius, 0, 0, 0],
-                   [0, -radius, 0, 1],
-                   [0,  radius, 0, 1],
-                   [0, 0, -2*radius, 2],
-                   [0, 0,  2*radius, 2]]
-
-    # control of the wall
-    w_control = [5, 2] # [id, direction]
-
+    L_pos_w = [[-2*radius, 0, 0, 0],
+               [ 2*radius, 0, 0, 0],
+               [0, -radius, 0, 1],
+               [0,  radius, 0, 1],
+               [0, 0, -2*radius, 2],
+               [0, 0,  2*radius, 2]]
+    
     #---------------------------------------------------------------------#
     # Grain positions
     # x, y, z
 
-    if Shape == 'Sphere':
-        L_pos_g = [[-radius, 0, -radius],
-                   [ radius, 0, -radius],
-                   [-radius, 0,  radius],
-                   [ radius, 0,  radius]]
-
+    L_pos_g = [[-radius, 0, -radius],
+               [ radius, 0, -radius],
+               [-radius, 0,  radius],
+               [ radius, 0,  radius]]
+    
     #---------------------------------------------------------------------#
     # trackers
 
@@ -192,6 +181,7 @@ def get_parameters():
     L_L_loss_pf_eta_i = []
     L_loss_pf_c = []
     L_loss_pf_m = []
+    L_delta_z_sample = []
 
     #---------------------------------------------------------------------#
     # dictionnary
@@ -213,7 +203,6 @@ def get_parameters():
     'kn_dem': kn,
     'ks_dem': ks,
     'force_applied': force_applied,
-    'Shape': Shape,
     'radius': radius,
     'check_database': check_database,
     'Energy_barrier': Energy_barrier,
@@ -234,7 +223,6 @@ def get_parameters():
     'n_t_PF': n_t_PF,
     'crit_res': crit_res,
     'eta_contact_box_detection': eta_contact_box_detection,
-    'w_control': w_control,
     'L_L_displacement': L_L_displacement,
     'L_L_overlap': L_L_overlap,
     'L_L_normal_force': L_L_normal_force,
@@ -265,23 +253,19 @@ def get_parameters():
     'L_loss_kc_m': L_loss_kc_m,
     'L_L_loss_pf_eta_i': L_L_loss_pf_eta_i,
     'L_loss_pf_c': L_loss_pf_c,
-    'L_loss_pf_m': L_loss_pf_m
+    'L_loss_pf_m': L_loss_pf_m,
+    'L_delta_z_sample': L_delta_z_sample,
+    'x_min': x_min,
+    'x_max': x_max,
+    'y_min': y_min,
+    'y_max': y_max,
+    'z_min': z_min,
+    'z_max': z_max,
+    'n_mesh_x': n_mesh_x,
+    'n_mesh_y': n_mesh_y,
+    'n_mesh_z': n_mesh_z,
+    'L_pos_w': L_pos_w,
+    'L_pos_g': L_pos_g
     }
-
-    if Shape == 'Sphere':
-        dict_user['x_min'] = x_min
-        dict_user['x_max'] = x_max
-        dict_user['y_min'] = y_min
-        dict_user['y_max'] = y_max
-        dict_user['z_min'] = z_min
-        dict_user['z_max'] = z_max
-        dict_user['n_mesh_x'] = n_mesh_x
-        dict_user['n_mesh_y'] = n_mesh_y
-        dict_user['n_mesh_z'] = n_mesh_z
-        dict_user['L_pos_w'] = L_pos_w
-        dict_user['L_pos_g'] = L_pos_g
-
-    elif Shape == 'Microstructure':
-        pass
-
+        
     return dict_user

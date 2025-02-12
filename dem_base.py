@@ -50,7 +50,7 @@ def create_walls():
     global control_plate
     for i_wall in range(len(L_pos_w)):
         O.bodies.append(wall((L_pos_w[i_wall][0], L_pos_w[i_wall][1], L_pos_w[i_wall][2]), L_pos_w[i_wall][3], material=1))
-        if i_wall == w_control[0]:
+        if i_wall == 5:
             control_plate = O.bodies[-1]
 
 # -----------------------------------------------------------------------------#
@@ -110,26 +110,16 @@ def applied_force():
     '''
     Apply a constant force on the top grain.
     '''
-    F_applied = O.forces.f(control_plate.id)[w_control[1]]
+    F_applied = O.forces.f(control_plate.id)[2]
     # compute correction
     dF = F_applied - force_applied_target
-    v_plate_max = radius*0.0001/O.dt
-    v_try_abs = abs(1*dF)/O.dt
+    v_plate_max = radius*0.00005/O.dt
+    v_try_abs = abs(0.1*dF)/O.dt
     # maximal speed is applied to top wall
     if v_try_abs < v_plate_max :
-        if w_control[1] == 0:
-            control_plate.state.vel = (np.sign(dF)*v_try_abs, 0, 0)
-        elif w_control[1] == 1:
-            control_plate.state.vel = (0, np.sign(dF)*v_try_abs, 0)
-        elif w_control[1] == 2:
-            control_plate.state.vel = (0, 0, np.sign(dF)*v_try_abs)
+        control_plate.state.vel = (0, 0, np.sign(dF)*v_try_abs)
     else :
-        if w_control[1] == 0:
-            control_plate.state.vel = (np.sign(dF)*v_plate_max, 0, 0)
-        elif w_control[1] == 1:
-            control_plate.state.vel = (0, np.sign(dF)*v_plate_max, 0)
-        elif w_control[1] == 2:
-            control_plate.state.vel = (0, 0, np.sign(dF)*v_plate_max)
+        control_plate.state.vel = (0, 0, np.sign(dF)*v_plate_max)
 
 # -----------------------------------------------------------------------------#
 
@@ -161,7 +151,7 @@ def add_data():
         - force applied on the control plate
     '''
     plot.addData(iteration=O.iter, unbalForce=unbalancedForce(),\
-                 pos_w_control=control_plate.state.pos[w_control[1]], f_w_control=O.forces.f(control_plate.id)[w_control[1]])
+                 pos_w_control=control_plate.state.pos[2], f_w_control=O.forces.f(control_plate.id)[2])
     
 # -----------------------------------------------------------------------------#
 # Load data
@@ -178,7 +168,6 @@ ks = dict_save['ks']
 n_ite_max = dict_save['n_ite_max']
 i_DEMPF_ite = dict_save['i_DEMPF_ite']
 L_pos_w = dict_save['L_pos_w']
-w_control = dict_save['w_control']
 force_applied_target = dict_save['force_applied']
 n_steady_state_detection = dict_save['n_steady_state_detection']
 steady_state_detection = dict_save['steady_state_detection']
@@ -245,7 +234,9 @@ for i in O.interactions:
 # Save data
 dict_save = {
 'L_displacement': L_displacement,
-'L_contact': L_contact
+'L_contact': L_contact,
+'delta_z_sample': O.bodies[-1].state.pos[2]-O.bodies[-2].state.pos[2], 
+'pos_z_control': control_plate.state.pos[2]
 }
 with open('data/dem_to_main.data', 'wb') as handle:
     pickle.dump(dict_save, handle, protocol=pickle.HIGHEST_PROTOCOL)

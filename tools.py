@@ -457,6 +457,22 @@ def plot_slices(dict_user, dict_sample):
         fig.savefig('plot/configuration/c_'+str(dict_sample['i_DEMPF_ite'])+'.png')
         plt.close(fig)
 
+    if 'configuration_s_eta' in dict_user['L_figures']:
+        # initialization
+        map_sum_etas = np.zeros((dict_sample['c_map'].shape[0], dict_sample['c_map'].shape[2]))
+        # iterate on grains
+        for i_grain in range(len(dict_sample['L_etai_map'])):
+            # x-z 
+            map_sum_etas = map_sum_etas + dict_sample['c_map'][:,i_y_slice,:]
+        # plot
+        fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+        im = ax1.imshow(map_sum_etas, interpolation = 'nearest')
+        ax1.set_title(r'slice x-z',fontsize = 30)
+        fig.colorbar(im, ax=ax1)
+        fig.tight_layout()
+        fig.savefig('plot/configuration/s_eta_'+str(dict_sample['i_DEMPF_ite'])+'.png')
+        plt.close(fig)        
+
 #------------------------------------------------------------------------------------------------------------------------------------------ #
 
 def plot_displacement(dict_user, dict_sample):
@@ -478,6 +494,25 @@ def plot_displacement(dict_user, dict_sample):
     fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
     for i_grain in range(len(L_L_strain)):
         ax1.plot(L_L_strain[i_grain])
+    ax1.set_xlabel('iterations (-)')
+    ax1.set_ylabel('vertical strain (-)')
+    fig.tight_layout()
+    fig.savefig('plot/vertical_strain_grain.png')
+    plt.close(fig)
+
+#------------------------------------------------------------------------------------------------------------------------------------------ #
+
+def plot_settlement(dict_user, dict_sample):
+    '''
+    Plot figure illustrating the settlement curve.
+    '''
+    # pp data
+    L_strain = []
+    for i_size in range(len(dict_user['L_delta_z_sample'])):
+        L_strain.append((dict_user['L_delta_z_sample'][i_size]-dict_user['L_delta_z_sample'][0])/dict_user['L_delta_z_sample'][0]) 
+    # plot
+    fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
+    ax1.plot(L_strain)
     ax1.set_xlabel('iterations (-)')
     ax1.set_ylabel('vertical strain (-)')
     fig.tight_layout()
