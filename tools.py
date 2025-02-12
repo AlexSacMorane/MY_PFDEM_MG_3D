@@ -463,7 +463,7 @@ def plot_slices(dict_user, dict_sample):
         # iterate on grains
         for i_grain in range(len(dict_sample['L_etai_map'])):
             # x-z 
-            map_sum_etas = map_sum_etas + dict_sample['c_map'][:,i_y_slice,:]
+            map_sum_etas = map_sum_etas + dict_sample['L_etai_map'][i_grain][:,i_y_slice,:]
         # plot
         fig, (ax1) = plt.subplots(nrows=1,ncols=1,figsize=(16,9))
         im = ax1.imshow(map_sum_etas, interpolation = 'nearest')
