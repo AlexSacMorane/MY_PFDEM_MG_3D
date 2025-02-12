@@ -31,7 +31,7 @@ def move_phasefield(dict_user, dict_sample):
     # iterate on grains
     for i_grain in range(0, len(dict_sample['L_etai_map'])):
         # read displacement
-        displacement = L_displacement[i_grain]
+        displacement = L_displacement[i_grain] 
         # print
         print('grain', i_grain, ':', displacement)
 
@@ -44,7 +44,7 @@ def move_phasefield(dict_user, dict_sample):
         for i_x in range(len(dict_sample['x_L'])):
             x = dict_sample['x_L'][i_x]
             i_x_old = 0
-            # eta 1
+            # eta 1 
             if displacement[0] < 0:
                 if x-displacement[0] <= dict_sample['x_L'][-1]:
                     # look for window
@@ -52,7 +52,7 @@ def move_phasefield(dict_user, dict_sample):
                         i_x_old = i_x_old + 1
                     # interpolate
                     eta_i_map_new[i_x, :, :] = (eta_i_map[(i_x_old+1), :, :] - eta_i_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
-                                              (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
+                                                (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
             elif displacement[0] > 0:
                 if dict_sample['x_L'][0] <= x-displacement[0]:
                     # look for window
@@ -60,10 +60,10 @@ def move_phasefield(dict_user, dict_sample):
                         i_x_old = i_x_old + 1
                     # interpolate
                     eta_i_map_new[i_x, :, :] = (eta_i_map[(i_x_old+1), :, :] - eta_i_map[i_x_old, :, :])/(dict_sample['x_L'][i_x_old+1] - dict_sample['x_L'][i_x_old])*\
-                                              (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
+                                                (x-displacement[0] - dict_sample['x_L'][i_x_old]) + eta_i_map[i_x_old, :, :]
             else :
                 eta_i_map_new = eta_i_map
-
+        
         # TRANSLATION on y
         # loading old variables
         eta_i_map = eta_i_map_new.copy()
@@ -73,7 +73,7 @@ def move_phasefield(dict_user, dict_sample):
         for i_y in range(len(dict_sample['y_L'])):
             y = dict_sample['y_L'][i_y]
             i_y_old = 0
-            # eta 1
+            # eta 1 
             if displacement[1] < 0:
                 if y-displacement[1] <= dict_sample['y_L'][-1]:
                     # look for window
@@ -81,7 +81,7 @@ def move_phasefield(dict_user, dict_sample):
                         i_y_old = i_y_old + 1
                     # interpolate
                     eta_i_map_new[:, i_y, :] = (eta_i_map[:, (i_y_old+1), :] - eta_i_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
-                                              (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
+                                                (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
             elif displacement[1] > 0:
                 if dict_sample['y_L'][0] <= y-displacement[1]:
                     # look for window
@@ -89,7 +89,7 @@ def move_phasefield(dict_user, dict_sample):
                         i_y_old = i_y_old + 1
                     # interpolate
                     eta_i_map_new[:, i_y, :] = (eta_i_map[:, (i_y_old+1), :] - eta_i_map[:, i_y_old, :])/(dict_sample['y_L'][i_y_old+1] - dict_sample['y_L'][i_y_old])*\
-                                              (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
+                                                (y-displacement[1] - dict_sample['y_L'][i_y_old]) + eta_i_map[:, i_y_old, :]
             else :
                 eta_i_map_new = eta_i_map
 
@@ -102,7 +102,7 @@ def move_phasefield(dict_user, dict_sample):
         for i_z in range(len(dict_sample['z_L'])):
             z = dict_sample['z_L'][i_z]
             i_z_old = 0
-            # eta 1
+            # eta 1 
             if displacement[2] < 0:
                 if z-displacement[2] <= dict_sample['z_L'][-1]:
                     # look for window
@@ -110,7 +110,7 @@ def move_phasefield(dict_user, dict_sample):
                         i_z_old = i_z_old + 1
                     # interpolate
                     eta_i_map_new[:, :, i_z] = (eta_i_map[:, :, (i_z_old+1)] - eta_i_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
-                                              (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
+                                                (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
             elif displacement[2] > 0:
                 if dict_sample['z_L'][0] <= z-displacement[2]:
                     # look for window
@@ -118,7 +118,7 @@ def move_phasefield(dict_user, dict_sample):
                         i_z_old = i_z_old + 1
                     # interpolate
                     eta_i_map_new[:, :, i_z] = (eta_i_map[:, :, (i_z_old+1)] - eta_i_map[:, :, i_z_old])/(dict_sample['z_L'][i_z_old+1] - dict_sample['z_L'][i_z_old])*\
-                                              (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
+                                                (z-displacement[2] - dict_sample['z_L'][i_z_old]) + eta_i_map[:, :, i_z_old]
             else :
                 eta_i_map_new = eta_i_map
 
@@ -146,7 +146,7 @@ def move_phasefield(dict_user, dict_sample):
             center_y = center_y/counter
             center_z = center_z/counter
             center = np.array([center_x, center_y, center_z])
-
+                        
             # compute matrice of rotation
             # cf french wikipedia "quaternions et rotation dans l'espace"
             a = displacement[3]
@@ -154,10 +154,10 @@ def move_phasefield(dict_user, dict_sample):
             c = displacement[5]
             d = displacement[6]
             M_rot = np.array([[a*a+b*b-c*c-d*d,     2*b*c-2*a*d,     2*a*c+2*b*d],
-                              [    2*a*d+2*b*c, a*a-b*b+c*c-d*d,     2*c*d-2*a*b],
-                              [    2*b*d-2*a*c,     2*a*b+2*c*d, a*a-b*b-c*c+d*d]])
+                                [    2*a*d+2*b*c, a*a-b*b+c*c-d*d,     2*c*d-2*a*b],
+                                [    2*b*d-2*a*c,     2*a*b+2*c*d, a*a-b*b-c*c+d*d]])
             M_rot_inv = np.linalg.inv(M_rot)
-
+            
             # loading old variables
             eta_i_map = eta_i_map_new.copy()
             # updating phase map
@@ -176,23 +176,23 @@ def move_phasefield(dict_user, dict_sample):
                         pp = np.dot(M_rot_inv, pp)
                         # applied center
                         pp = pp + center
-                        # initialization
+                        # initialization 
                         found = True
-                        # look for the vector in the x-axis
+                        # look for the vector in the x-axis                    
                         if dict_sample['x_L'][0] <= pp[0] and pp[0] <= dict_sample['x_L'][-1]:
                             i_x_old = 0
                             while not (dict_sample['x_L'][i_x_old] <= pp[0] and pp[0] <= dict_sample['x_L'][i_x_old+1]):
                                 i_x_old = i_x_old + 1
                         else :
                             found = False
-                        # look for the vector in the y-axis
+                        # look for the vector in the y-axis                    
                         if dict_sample['y_L'][0] <= pp[1] and pp[1] <= dict_sample['y_L'][-1]:
                             i_y_old = 0
                             while not (dict_sample['y_L'][i_y_old] <= pp[1] and pp[1] <= dict_sample['y_L'][i_y_old+1]):
                                 i_y_old = i_y_old + 1
                         else :
                             found = False
-                        # look for the vector in the z-axis
+                        # look for the vector in the z-axis                    
                         if dict_sample['z_L'][0] <= pp[2] and pp[2] <= dict_sample['z_L'][-1]:
                             i_z_old = 0
                             while not (dict_sample['z_L'][i_z_old] <= pp[2] and pp[2] <= dict_sample['z_L'][i_z_old+1]):
@@ -242,10 +242,10 @@ def move_phasefield(dict_user, dict_sample):
 
                             # interpolation following the x-axis
                             eta_i_map_new[i_x, i_y, i_z] = (q0*(p1[0]-pp[0]) + q1*(pp[0]-p0[0]))/(p1[0]-p0[0])
-
+                            
                         else :
                             eta_i_map_new[i_x, i_y, i_z] = 0
-
+                            
         # update variables
         dict_sample['L_etai_map'][i_grain] = eta_i_map_new
 
@@ -267,7 +267,7 @@ def compute_contact(dict_user, dict_sample):
   dict_sample['L_vol_contact'] = []
   dict_sample['L_surf_contact'] = []
   # iterate on contacts
-  for contact in L_contact:
+  for contact in L_contact:                
     # box initialization
     x_box_min = None
     x_box_max = None
@@ -277,7 +277,7 @@ def compute_contact(dict_user, dict_sample):
     z_box_max = None
     # volume
     vol_contact = 0
-    # surface
+    # surface 
     surf_contact = 0
     # iterate on mesh
     for i_x in range(len(dict_sample['x_L'])):
@@ -318,7 +318,7 @@ def compute_contact(dict_user, dict_sample):
                                               (dict_sample['y_L'][1]-dict_sample['y_L'][0])
         # compare surface at this z with the maximum registered
         if surf_contact < surf_contact_z:
-          surf_contact = surf_contact_z
+          surf_contact = surf_contact_z  
     # if no contact detected
     if x_box_min == None:
       x_box_min = 0
@@ -338,13 +338,10 @@ def compute_contact(dict_user, dict_sample):
   for i_grain in range(len(dict_sample['L_etai_map'])-1):
       for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
           i_contact = 0
-          if len(L_contact) > 0 :
-              contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-              while not contact_found and i_contact < len(L_contact)-1:
-                  i_contact = i_contact + 1
-                  contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-          else :
-              contact_found = False  
+          contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+          while not contact_found and i_contact < len(L_contact)-1:
+                i_contact = i_contact + 1
+                contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
           if dict_sample['i_DEMPF_ite'] == 1:
               if contact_found:
                   dict_user['L_L_contact_box_x'].append([dict_sample['L_contact_box'][i_contact][1]-dict_sample['L_contact_box'][i_contact][0]])
@@ -388,27 +385,28 @@ def compute_as(dict_user, dict_sample):
     dict_sample['as_map'] = np.ones((dict_user['n_mesh_x'], dict_user['n_mesh_y'], dict_user['n_mesh_z']))
     L_pressure_tempo = []
     L_as_tempo = []
-    # iterate on mesh
-    for i_x in range(len(dict_sample['x_L'])):
-        for i_y in range(len(dict_sample['y_L'])):
-            for i_z in range(len(dict_sample['z_L'])):
-                p_saved = False
-                for i_contact in range(len(L_contact)):
-                  contact = L_contact[i_contact]
-                  # contact detection
-                  if dict_sample['L_etai_map'][contact[0]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
-                     dict_sample['L_etai_map'][contact[1]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
-                      # determine pressure
-                      P = contact[3][2]/dict_sample['L_surf_contact'][i_contact] # Pa
-                      # tempo save
-                      if not p_saved :
-                        L_pressure_tempo.append(P)
-                        L_as_tempo.append(math.exp(P*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature'])))
-                        p_saved = True
-                      # save in the map
-                      # do not erase data
-                      if dict_sample['as_map'][i_x, i_y, i_z] == 1:
-                          dict_sample['as_map'][i_x, i_y, i_z] = math.exp(P*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature']))
+    # iterate on contacts
+    for i_contact in range(len(L_contact)):
+        contact = L_contact[i_contact]
+        p_saved = False        
+        # iterate on mesh
+        for i_x in range(len(dict_sample['x_L'])):
+            for i_y in range(len(dict_sample['y_L'])):
+                for i_z in range(len(dict_sample['z_L'])):
+                    # contact detection
+                    if dict_sample['L_etai_map'][contact[0]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
+                       dict_sample['L_etai_map'][contact[1]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
+                        # determine pressure
+                        P = contact[3][2]/dict_sample['L_surf_contact'][i_contact] # Pa
+                        # tempo save
+                        if not p_saved :
+                            L_pressure_tempo.append(P)
+                            L_as_tempo.append(math.exp(P*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature'])))
+                            p_saved = True
+                        # save in the map
+                        # do not erase data
+                        if dict_sample['as_map'][i_x, i_y, i_z] == 1:
+                           dict_sample['as_map'][i_x, i_y, i_z] = math.exp(P*dict_user['V_m']/(dict_user['R_cst']*dict_user['temperature']))
     
     # save
     # iterate on potential contact
@@ -416,13 +414,10 @@ def compute_as(dict_user, dict_sample):
     for i_grain in range(len(dict_sample['L_etai_map'])-1):
         for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
             i_contact = 0
-            if len(L_contact) > 0:
+            contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+            while not contact_found and i_contact < len(L_contact)-1:
+                i_contact = i_contact + 1
                 contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-                while not contact_found and i_contact < len(L_contact)-1:
-                    i_contact = i_contact + 1
-                    contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
-            else :
-                contact_found = False
             if dict_sample['i_DEMPF_ite'] == 1:
                 if contact_found:
                     dict_user['L_L_contact_pressure'].append([L_pressure_tempo[i_contact]])
@@ -438,8 +433,8 @@ def compute_as(dict_user, dict_sample):
                     dict_user['L_L_contact_pressure'][ij].append(0)
                     dict_user['L_L_contact_as'][ij].append(1)
             ij = ij + 1
-
-    # plot
+            
+    # plot 
     plot_as_pressure(dict_user, dict_sample) # from tools.py
 
     # write as
@@ -492,7 +487,7 @@ def compute_kc(dict_user, dict_sample):
     labelled_image, num_features = label(invert_dilated_M)
     dict_user['L_grain_kc_map'].append(num_features)
 
-    # plot
+    # plot 
     if 'n_grain_kc_map' in dict_user['L_figures']:
         fig, (ax1) = plt.subplots(1,1,figsize=(16,9))
         ax1.plot(dict_user['L_grain_kc_map'])
@@ -510,12 +505,12 @@ def compute_kc(dict_user, dict_sample):
     for i_z in range(len(dict_sample['y_L'])):
         for i_y in range(len(dict_sample['y_L'])):
             for i_x in range(len(dict_sample['x_L'])):
-                if not dilated_M[i_x, i_y, i_z]:
+                if not dilated_M[i_x, i_y, i_z]: 
                     c_map_new[i_x, i_y, i_z] = dict_user['C_eq']
-
+    
     # HERE MUST BE MODIFIED
     # Move the solute to connserve the mass
-
+                    
     # save data
     dict_sample['c_map'] = c_map_new
 
@@ -634,7 +629,7 @@ def write_i(dict_user, dict_sample):
                       "\t\tv = 'eta"+str(i_grain+1)+"'\n"+\
                       '\t\tvariable = c\n'+\
                       '\t\tcoef = '+str(1/dict_user['V_m'])+'\n'+\
-                      '\t[../]\n'
+                      '\t[../]\n'    
     elif j == 46:
       line = line[:-1] + "'"+str(dict_user['Mobility_eff'])+' '+str(dict_user['kappa_eta'])+" 1'\n"
     elif j == 66:
@@ -680,7 +675,7 @@ def write_i(dict_user, dict_sample):
         line = line + '\t[eta'+str(i_grain+1)+'_txt]\n'+\
                       '\t\ttype = PiecewiseMultilinear\n'+\
                       "\t\tdata_file = data/eta_"+str(i_grain+1)+".txt\n"+\
-                      '\t[]\n'
+                      '\t[]\n'   
     elif j == 135 or j == 136 or j == 138 or j == 139:
       line = line[:-1] + ' ' + str(dict_user['crit_res']) +'\n'
     elif j == 142:
@@ -690,7 +685,7 @@ def write_i(dict_user, dict_sample):
     file_to_write.write(line)
 
   file_to_write.close()
-
+    
 #-------------------------------------------------------------------------------
 
 def sort_dem_files(dict_user, dict_sample):
