@@ -49,7 +49,8 @@ def get_parameters():
     # steady state detection
     n_ite_max = 5000 # maximum number of iteration during a DEM step
     n_steady_state_detection = 10 # window size for the steady state detection
-    steady_state_detection = 0.01 # criterion for the steady state detection
+    steady_state_detection_unbal = 0.01 # criterion for the steady state detection on the unbalanced force
+    steady_state_detection_force = 0.05 # criterion for the steady state detection on the force applied
 
     # DEM material parameters
     # Young modulus
@@ -197,7 +198,8 @@ def get_parameters():
     'L_figures': L_figures,
     'n_ite_max': n_ite_max,
     'n_steady_state_detection': n_steady_state_detection,
-    'steady_state_detection': steady_state_detection,
+    'steady_state_detection_unbal': steady_state_detection_unbal,
+    'steady_state_detection_force': steady_state_detection_force,
     'E': E,
     'Poisson': Poisson,
     'kn_dem': kn,

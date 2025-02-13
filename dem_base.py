@@ -130,14 +130,18 @@ def check():
     '''
     if O.iter < max(n_ite_max*0.01, n_steady_state_detection):
         return
-    window = plot.data['unbalForce'][-n_steady_state_detection:]
-    if O.iter > n_ite_max or max(window)<steady_state_detection:
+    window_unbal = plot.data['unbalForce'][-n_steady_state_detection:]
+    window_force = plot.data['f_w_control'][-n_steady_state_detection:]
+    if O.iter > n_ite_max or \
+      (max(window_unbal)<steady_state_detection_unbal and \
+      (1-steady_state_detection_force)*force_applied_target < min(window_force) and \
+      max(window_force) < (1+steady_state_detection_force)*force_applied_target ):
         if print_all_dem:
             plot.plot(noShow=True).savefig('plot/dem/'+str(i_DEMPF_ite)+'.png')
             plot.saveDataTxt('plot/dem/'+str(i_DEMPF_ite)+'.txt', vars=('iteration', 'unbalForce', 'pos_w_control', 'f_w_control'))
         if print_dem:
             plot.plot(noShow=True).savefig('plot/dem.png')
-            plot.saveDataTxt('plot/dem.txt', vars=('iteration', 'unbalForce'))
+            plot.saveDataTxt('plot/dem.txt', vars=('iteration', 'unbalForce', 'pos_w_control', 'f_w_control'))
         O.pause() # stop DEM simulation
     
 # -----------------------------------------------------------------------------#
@@ -170,7 +174,8 @@ i_DEMPF_ite = dict_save['i_DEMPF_ite']
 L_pos_w = dict_save['L_pos_w']
 force_applied_target = dict_save['force_applied']
 n_steady_state_detection = dict_save['n_steady_state_detection']
-steady_state_detection = dict_save['steady_state_detection']
+steady_state_detection_unbal = dict_save['steady_state_detection_unbal']
+steady_state_detection_force = dict_save['steady_state_detection_force']
 print_all_dem = dict_save['print_all_dem']
 print_dem = dict_save['print_dem']
 print_vtk = dict_save['print_vtk']

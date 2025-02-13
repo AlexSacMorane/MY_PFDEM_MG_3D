@@ -112,7 +112,8 @@ def run_yade(dict_user, dict_sample):
     'L_pos_w': dict_sample['L_pos_w'],
     'force_applied': dict_user['force_applied'],
     'n_steady_state_detection': dict_user['n_steady_state_detection'],
-    'steady_state_detection': dict_user['steady_state_detection'],
+    'steady_state_detection_unbal': dict_user['steady_state_detection_unbal'],
+    'steady_state_detection_force': dict_user['steady_state_detection_force'],
     'print_all_dem': 'all_dem' in dict_user['L_figures'],
     'print_dem': 'dem' in dict_user['L_figures'],
     'print_vtk': 'yade_vtk' in dict_user['L_figures']
