@@ -251,7 +251,7 @@ def move_phasefield(dict_user, dict_sample):
 
 # -----------------------------------------------------------------------------#
 
-def compute_contact(dict_user, dict_sample):
+def compute_contact_old(dict_user, dict_sample):
   '''
   Compute the contact characteristics:
     - box
@@ -369,6 +369,153 @@ def compute_contact(dict_user, dict_sample):
                   dict_user['L_L_contact_volume'][ij].append(0)
                   dict_user['L_L_contact_surface'][ij].append(0)
           ij = ij + 1
+
+# -----------------------------------------------------------------------------#
+
+def compute_contact(dict_user, dict_sample):
+  '''
+  Compute the contact characteristics:
+    - box
+    - maximum surface
+    - volume
+  '''
+  # load data
+  with open('data/dem_to_main.data', 'rb') as handle:
+      dict_save = pickle.load(handle)
+  L_contact = dict_save['L_contact']
+  # initialization
+  dict_sample['L_contact_box'] = []
+  dict_sample['L_vol_contact'] = []
+  dict_sample['L_surf_contact'] = []
+  # iterate on contacts
+  for contact in L_contact:                
+    # box initialization
+    x_box_min = None
+    x_box_max = None
+    y_box_min = None
+    y_box_max = None
+    z_box_min = None
+    z_box_max = None
+    # volume
+    vol_contact = 0
+    # points in contact
+    L_points_contact  = []
+    # iterate on mesh
+    for i_x in range(len(dict_sample['x_L'])):
+      for i_y in range(len(dict_sample['y_L'])):
+        for i_z in range(len(dict_sample['z_L'])):
+          # contact detection
+          if dict_sample['L_etai_map'][contact[0]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection'] and\
+             dict_sample['L_etai_map'][contact[1]][i_x, i_y, i_z] > dict_user['eta_contact_box_detection']:
+            # compute box dimensions
+            if x_box_min == None:
+              x_box_min = dict_sample['x_L'][i_x]
+              x_box_max = dict_sample['x_L'][i_x]
+              y_box_min = dict_sample['y_L'][i_y]
+              y_box_max = dict_sample['y_L'][i_y]
+              z_box_min = dict_sample['z_L'][i_z]
+              z_box_max = dict_sample['z_L'][i_z]
+            else :
+              if dict_sample['x_L'][i_x] < x_box_min:
+                x_box_min = dict_sample['x_L'][i_x]
+              if x_box_max < dict_sample['x_L'][i_x]:
+                x_box_max = dict_sample['x_L'][i_x]
+              if dict_sample['y_L'][i_y] < y_box_min:
+                y_box_min = dict_sample['y_L'][i_y]
+              if y_box_max < dict_sample['y_L'][i_y]:
+                y_box_max = dict_sample['y_L'][i_y]
+              if dict_sample['z_L'][i_z] < z_box_min:
+                z_box_min = dict_sample['z_L'][i_z]
+              if z_box_max < dict_sample['z_L'][i_z]:
+                z_box_max = dict_sample['z_L'][i_z]
+            # compute volume contact
+            vol_contact = vol_contact + (dict_sample['x_L'][1]-dict_sample['x_L'][0])*\
+                                        (dict_sample['y_L'][1]-dict_sample['y_L'][0])*\
+                                        (dict_sample['z_L'][1]-dict_sample['z_L'][0])
+            # save point in contact
+            L_points_contact.append(np.array([dict_sample['x_L'][i_x], dict_sample['y_L'][i_y], dict_sample['z_L'][i_z]])) 
+    # if contact detected
+    if L_points_contact != []:
+        # definition of the contact plane
+        n = contact[3]/np.linalg.norm(contact[3])
+        u = np.array([-n[1], n[0], 0])
+        u = u/np.linalg.norm(u)
+        v = np.cross(n,u)
+        # projection of the point in the contact plane
+        u_box_min = None
+        L_points_contact_proj = []
+        for points_contact in L_points_contact:
+            L_points_contact_proj.append(np.array([np.dot(points_contact,u), np.dot(points_contact,v)]))
+            # compute box on  the projection plane
+            if u_box_min == None:
+                u_box_min = L_points_contact_proj[-1][0]
+                u_box_max = L_points_contact_proj[-1][0]
+                v_box_min = L_points_contact_proj[-1][1]
+                v_box_max = L_points_contact_proj[-1][1]
+            else :
+                if L_points_contact_proj[-1][0] < u_box_min:
+                    u_box_min = L_points_contact_proj[-1][0]
+                if u_box_max < L_points_contact_proj[-1][0]:
+                    u_box_max = L_points_contact_proj[-1][0]
+                if L_points_contact_proj[-1][1] < v_box_min:
+                    v_box_min = L_points_contact_proj[-1][1]
+                if v_box_max < L_points_contact_proj[-1][1]:
+                    v_box_max = L_points_contact_proj[-1][1]
+        # compute surface from the box (estimation)
+        surf_contact = (u_box_max-u_box_min)*(v_box_max-v_box_min)
+
+    # if no contact detected
+    if x_box_min == None:
+      x_box_min = 0
+      x_box_max = 0
+      y_box_min = 0
+      y_box_max = 0
+      z_box_min = 0
+      z_box_max = 0
+      surf_contact = 0
+    # save
+    dict_sample['L_contact_box'].append([x_box_min, x_box_max, y_box_min, y_box_max, z_box_min, z_box_max])
+    dict_sample['L_vol_contact'].append(vol_contact)
+    dict_sample['L_surf_contact'].append(surf_contact)
+
+  # save
+  # iterate on potential contact
+  ij = 0
+  for i_grain in range(len(dict_sample['L_etai_map'])-1):
+      for j_grain in range(i_grain+1, len(dict_sample['L_etai_map'])):
+          i_contact = 0
+          contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+          while not contact_found and i_contact < len(L_contact)-1:
+                i_contact = i_contact + 1
+                contact_found = L_contact[i_contact][0:2] == [i_grain, j_grain]
+          if dict_sample['i_DEMPF_ite'] == 1:
+              if contact_found:
+                  dict_user['L_L_contact_box_x'].append([dict_sample['L_contact_box'][i_contact][1]-dict_sample['L_contact_box'][i_contact][0]])
+                  dict_user['L_L_contact_box_y'].append([dict_sample['L_contact_box'][i_contact][3]-dict_sample['L_contact_box'][i_contact][2]])
+                  dict_user['L_L_contact_box_z'].append([dict_sample['L_contact_box'][i_contact][5]-dict_sample['L_contact_box'][i_contact][4]])
+                  dict_user['L_L_contact_volume'].append([dict_sample['L_vol_contact'][i_contact]])
+                  dict_user['L_L_contact_surface'].append([dict_sample['L_surf_contact'][i_contact]])
+              else:
+                  dict_user['L_L_contact_box_x'].append([0])
+                  dict_user['L_L_contact_box_y'].append([0])
+                  dict_user['L_L_contact_box_z'].append([0])
+                  dict_user['L_L_contact_volume'].append([0])
+                  dict_user['L_L_contact_surface'].append([0])
+          else :
+              if contact_found:
+                  dict_user['L_L_contact_box_x'][ij].append(dict_sample['L_contact_box'][i_contact][1]-dict_sample['L_contact_box'][i_contact][0])
+                  dict_user['L_L_contact_box_y'][ij].append(dict_sample['L_contact_box'][i_contact][3]-dict_sample['L_contact_box'][i_contact][2])
+                  dict_user['L_L_contact_box_z'][ij].append(dict_sample['L_contact_box'][i_contact][5]-dict_sample['L_contact_box'][i_contact][4])
+                  dict_user['L_L_contact_volume'][ij].append(dict_sample['L_vol_contact'][i_contact])
+                  dict_user['L_L_contact_surface'][ij].append(dict_sample['L_surf_contact'][i_contact])
+              else:
+                  dict_user['L_L_contact_box_x'][ij].append(0)
+                  dict_user['L_L_contact_box_y'][ij].append(0)
+                  dict_user['L_L_contact_box_z'][ij].append(0)
+                  dict_user['L_L_contact_volume'][ij].append(0)
+                  dict_user['L_L_contact_surface'][ij].append(0)
+          ij = ij + 1
+
 
 # -----------------------------------------------------------------------------#
 
